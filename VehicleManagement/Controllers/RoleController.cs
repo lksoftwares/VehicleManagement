@@ -23,12 +23,11 @@ namespace VehicleManagement.Controllers
 
         }
 
-     //   [AllowAnonymous]
+     [AllowAnonymous]
 
         [HttpGet]
 
-        [Route("getallrole")]
-
+        [Route("GetAllRole")]
         public IActionResult GetAllRole()
         {
             string query = $"select * from Role_mst ORDER BY Role_Name ASC";
@@ -61,37 +60,28 @@ namespace VehicleManagement.Controllers
         [HttpPost]
 
         [Route("AddRole")]
-
-
         public IActionResult AddRole([FromBody] RolesModel role)
         {
             try
-
             {
-
                 var duplicacyChecker = new CheckDuplicacy(_connection);
-
-
-                bool isDuplicate = duplicacyChecker.CheckDuplicate("Role_mst",
-                    new[] { "Role_Name" },
-                    new[] { role.Role_Name });
-
-
+                var duplicacyParameter = new CheckDuplicacyPerameter
+                {
+                    tableName = "Role_mst",
+                    fields = new[] { "Role_Name" },
+                    values = new[] { role.Role_Name }     
+                };
+                bool isDuplicate = duplicacyChecker.CheckDuplicate(duplicacyParameter);
                 if (isDuplicate)
                 {
                     return StatusCode(StatusCodes.Status208AlreadyReported, new { message = "RoleName already exists.", DUP = true });
-
                 }
                 if (String.IsNullOrEmpty(role.Role_Name))
                 {
                     return StatusCode(StatusCodes.Status200OK, new { message = "RoleName Can't be Blank Or Null", DUP = false });
-
                 }
                 _query = _dc.InsertOrUpdateEntity(role, "Role_mst", -1);
-
-
                 return StatusCode(StatusCodes.Status200OK, new { message = "RoleName Added Successfully", DUP = false });
-
 
             }
             catch (Exception ex)
@@ -107,12 +97,28 @@ namespace VehicleManagement.Controllers
         {
             try
             {
-                var duplicacyChecker = new CheckDuplicacy(_connection);
 
-                bool isDuplicate = duplicacyChecker.CheckDuplicate("Role_mst",
-                 new[] { "Role_Name" },
-                 new[] { role.Role_Name },
-                 "Role_Id", Role_ID.ToString());
+                var roleExists = $"SELECT COUNT(*) FROM Role_mst WHERE Role_Id = {Role_ID} ";
+                int result = Convert.ToInt32(_connection.ExecuteScalar(roleExists));
+
+
+                if (result==0)
+                {
+                    return StatusCode(StatusCodes.Status404NotFound, new { message = "Role ID does not exist.", DUP = false });
+                }
+
+                var duplicacyChecker = new CheckDuplicacy(_connection);
+                var duplicacyParameter = new CheckDuplicacyPerameter
+                {
+                    tableName = "Role_mst",
+                    fields = new[] { "Role_Name" },
+                    values = new[] { role.Role_Name },
+                    idField = "Role_Id",
+                    idValue = Role_ID.ToString()
+                };
+
+                bool isDuplicate = duplicacyChecker.CheckDuplicate(duplicacyParameter);
+         
 
                 if (isDuplicate)
                 {
@@ -122,6 +128,7 @@ namespace VehicleManagement.Controllers
                 if (String.IsNullOrEmpty(role.Role_Name))
                 {
                     return StatusCode(StatusCodes.Status200OK, new { message = "RoleName Can't be Blank Or Null", DUP = true });
+
                 }
                 _query = _dc.InsertOrUpdateEntity(role, "Role_mst", Role_ID, "Role_Id");
                 return StatusCode(StatusCodes.Status200OK, new { message = "RoleName Updated Successfully", DUP = false });
@@ -142,10 +149,24 @@ namespace VehicleManagement.Controllers
 
             try
             {
+                var roleExists = $"SELECT COUNT(*) FROM Role_mst WHERE Role_Id = {id} ";
+                int result = Convert.ToInt32(_connection.ExecuteScalar(roleExists));
 
 
-               
-                string deleteRoleQuery = $"Delete from Role_mst where Role_Id='{id}'";
+                if (result == 0)
+                {
+                    return StatusCode(StatusCodes.Status404NotFound, new { message = "Role ID does not exist.", DUP = false });
+                }
+
+                string checkQuery = $"SELECT COUNT(*) AS recordCount FROM User_mst WHERE Role_Id = {id}";
+
+
+                int roleIdInUser = Convert.ToInt32(_connection.ExecuteScalar(checkQuery));
+                    if (roleIdInUser > 0)
+                    {
+                        return Ok("Can't delete Exists in another table  ");
+                    }
+                    string deleteRoleQuery = $"Delete from Role_mst where Role_Id='{id}'";
 
                 LkDataConnection.Connection.ExecuteNonQuery(deleteRoleQuery);
                 return Ok("RoleName Deleted successfully");

@@ -13,20 +13,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
-            ValidIssuer = "http://localhost:7148/",
-            ValidAudience = "http://localhost:7148/",
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("2Fsk5LBU5j1DrPldtFmLWeO8uZ8skUzwhe3ktVimUE8l="))
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
 
 
     });
+
 //var jwtSettings = builder.Configuration["Jwt:Key"];
 //var jwt = builder.Configuration["Jwt:Issuer"];
 //var Audience = builder.Configuration["Jwt:Audience"];
 
 
 
-// Add services to the container.
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactConnection", policy =>

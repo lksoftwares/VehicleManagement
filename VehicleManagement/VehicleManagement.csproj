@@ -19,4 +19,9 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\Public\Images\" />
+    <Folder Include="wwwroot\Public\" />
+  </ItemGroup>
+
 </Project>
