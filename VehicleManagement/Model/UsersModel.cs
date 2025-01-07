@@ -35,7 +35,11 @@ namespace VehicleManagement.Model
         [JsonPropertyName("image")]
 
         public IFormFile? Image { get; set; }
-      
+        [JsonPropertyName("Shift_Id")]
+
+        public int? Shift_Id { get; set; }
+
+
 
 
 

@@ -6,25 +6,25 @@ namespace VehicleManagement.Model
     {
         [JsonPropertyName("shiftId")]
 
-        public int Shift_Id { get; set; }
+        public int? Shift_Id { get; set; }
         [JsonPropertyName("shiftName")]
 
-        public string Shift_Name { get; set; }
+        public string? Shift_Name { get; set; }
         [JsonPropertyName("startTime")]
 
-        public DateTime Start_Time { get; set; }
+        public TimeSpan? Start_Time { get; set; }
         [JsonPropertyName("endTime")]
 
-        public DateTime End_Time { get; set; }
+        public TimeSpan? End_Time { get; set; }
         [JsonPropertyName("graceTime")]
 
-        public DateTime Grace_Time { get; set; }
+        public float? Grace_Time { get; set; }
         [JsonPropertyName("createdAt")]
 
-        public DateTime Created_At { get; set; }
+        public DateTime? Created_At { get; set; }
         [JsonPropertyName("shiftStatus")]
 
-        public bool Shift_Status { get; set; }
+        public bool? Shift_Status { get; set; }
 
 
     }

@@ -46,13 +46,15 @@ namespace VehicleManagement.Controllers
             try
             {
 
-
-                
-              
                 string hashedPassword = encryptPassword.Encrypt("ABC", user.User_Password);
 
 
-                string query = $"SELECT U.*,R.* FROM User_Mst U  Join Role_Mst R on U.Role_Id=R.Role_Id WHERE  U.User_Email = '{user.User_Email}' AND U.User_Password='{hashedPassword}'";
+                //string query = $"SELECT U.*,R.* FROM User_Mst U  Join Role_Mst R on U.Role_Id=R.Role_Id WHERE  U.User_Email = '{user.User_Email}' AND U.User_Password='{hashedPassword}'";
+              
+
+
+
+                string query = $"SELECT U.*, R.Role_Id,R.Role_Name, M.Menu_Name, P.Permission_Type  FROM User_Mst U   JOIN Role_Mst R ON U.Role_Id = R.Role_Id   JOIN Menu_Role_Permission_Mst RMP ON R.Role_Id = RMP.Role_Id   JOIN Menu_Mst M ON RMP.Menu_Id = M.Menu_Id  JOIN Permission_Mst P ON RMP.Permission_Id = P.Permission_Id  WHERE U.User_Email = '{user.User_Email}' AND U.User_Password = '{hashedPassword}'";
 
                 var connection = new LkDataConnection.Connection();
 
@@ -61,6 +63,7 @@ namespace VehicleManagement.Controllers
                 DataTable Table = result._DataTable;
                 DataRow userData = Table.Rows.Count > 0 ? Table.Rows[0] : null;
 
+                Console.WriteLine($" Here is MEnu  {userData["Menu_Name"]}");
 
 
                 if (userData == null)
@@ -88,6 +91,43 @@ namespace VehicleManagement.Controllers
                 {
                     return Unauthorized(new { message = "User is not active. Please contact the administrator." });
                 }
+                //            var menupermission = Table.AsEnumerable()
+                //.GroupBy(row => row["Menu_Name"].ToString()) 
+                //.Select(group => new
+                //{
+                //    MenuName = group.Key,
+                //    Permissions = group.Select(row => row["Permission_Type"].ToString()).ToList()
+                //})
+                //.ToArray();
+                //        var menupermission = Table.AsEnumerable().GroupBy(row => row["Menu_Name"].ToString()).ToArray(group => group.Key,
+                //group => group.Select(row => row["Permission_Type"].ToString()).ToList());
+
+                var menuPermissions = Table.AsEnumerable()
+    .GroupBy(row => row["Menu_Name"].ToString())
+    .ToDictionary(
+        MenuName => MenuName.Key,
+        Permissions => Permissions.Select(row => row["Permission_Type"].ToString()).ToList()
+    );
+
+
+
+
+                //var menuPermissions = new Dictionary<string, List<string>>();
+                //foreach (DataRow row in Table.Rows)
+                //{
+                //    string menuName = row["Menu_Name"].ToString();
+                //    string permissionType = row["Permission_Type"].ToString();
+
+                //    if (!menuPermissions.ContainsKey(menuName))
+                //    {
+                //        menuPermissions[menuName] = new List<string>();
+                //    }
+
+                //    menuPermissions[menuName].Add(permissionType);
+                //}
+
+             
+
 
                 WebToken _web = new WebToken();
                 UserDetails _userdetails = new UserDetails();
@@ -123,9 +163,7 @@ namespace VehicleManagement.Controllers
                 }, new LkDataConnection.UserDetails
                 {
 
-                    ListKeydetails = _userdetails.ListKeydetails
-
-
+                    ListKeydetails = _userdetails.ListKeydetails 
 
                 });
                 WebTokenDetails _tokendetails = new WebTokenDetails();
@@ -140,7 +178,12 @@ namespace VehicleManagement.Controllers
                     token,
                     User_Id = userData["User_Id"],
                     Role_Id = userData["Role_Id"],
-                    Role_Name = userData["Role_Name"]
+                    Role_Name = userData["Role_Name"],
+                //    Menus = userData["Menu_Name"],
+                      Menus= menuPermissions
+                    //  Permission_type = userData["Permission_Type"],
+
+
 
                 });
 
@@ -168,7 +211,7 @@ namespace VehicleManagement.Controllers
                 user.User_Password = hashedPassword;
             }
             user.User_Status = 1;
-            user.Role_Id = 3;
+            user.Role_Id = 6;
             try
             {
                 var duplicacyChecker = new CheckDuplicacy(_connectionClass);
@@ -201,7 +244,6 @@ namespace VehicleManagement.Controllers
                 }
 
             
-
                 _query = _dc.InsertOrUpdateEntity(user, "User_Mst", -1);
                 return StatusCode(StatusCodes.Status200OK, new { message = "USer Register successfully" });
 
@@ -236,7 +278,7 @@ namespace VehicleManagement.Controllers
 
                 if (!string.IsNullOrEmpty(imageName))
                 {
-                    var imageUrl = $"http://192.168.1.54:7148/public/images/{imageName}";
+                    var imageUrl = $"http://192.168.1.66:7148/public/images/{imageName}";
 
                     return Ok(new { ImageUrl = imageUrl });
                 }
@@ -370,7 +412,7 @@ namespace VehicleManagement.Controllers
 
 
             }
-            string TotalUsers = $"select Count(*) as totalUsers from User_Mst where Role_Id=2";
+            string TotalUsers = $"select Count(*) as totalUsers from User_Mst where Role_Id=6";
             DataTable Table = _connectionClass.ExecuteQueryWithResult(TotalUsers);
             int TotalUser = 0;
             if (Table.Rows.Count > 0)
@@ -403,7 +445,7 @@ namespace VehicleManagement.Controllers
 
         [HttpDelete]
         [Route("deleteUser/{User_ID}")]
-        public IActionResult DeleteUserName(int User_ID)
+        public IActionResult DeleteUser(int User_ID)
         {
             try
             {
@@ -428,15 +470,15 @@ namespace VehicleManagement.Controllers
 
                 if (roleCount == 1 && currentUserRoleCount == 1)
                 {
-                    return Ok("Can't delete. This is the only Admin in the Table");
+                    return StatusCode(StatusCodes.Status200OK, new { message = "Can't delete. This is the only Admin in the Table" });
                 }
                 _connectionClass.GetSqlConnection().Close();
 
 
                 string deleteUserQuery = $"DELETE FROM User_Mst WHERE User_Id = {User_ID}";
                 LkDataConnection.Connection.ExecuteNonQuery(deleteUserQuery);
+                return StatusCode(StatusCodes.Status200OK, new { message = "User deleted successfully" });
 
-                return Ok("User deleted successfully.");
             }
             catch (Exception ex)
             {

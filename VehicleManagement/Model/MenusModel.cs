@@ -2,7 +2,7 @@
 
 namespace VehicleManagement.Model
 {
-    public class MenuesModel
+    public class MenusModel
     {
         [JsonPropertyName("menuId")]
 
@@ -10,11 +10,6 @@ namespace VehicleManagement.Model
         [JsonPropertyName("menuName")]
 
         public string? Menu_Name { get; set; }
-        [JsonPropertyName("menuURL")]
-
-        public string? Menu_URL { get; set; }
-        [JsonPropertyName("roleId")]
-
-        public int? Role_Id { get; set; }
+        
     }
 }

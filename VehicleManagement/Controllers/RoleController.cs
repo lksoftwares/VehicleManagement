@@ -164,12 +164,14 @@ namespace VehicleManagement.Controllers
                 int roleIdInUser = Convert.ToInt32(_connection.ExecuteScalar(checkQuery));
                     if (roleIdInUser > 0)
                     {
-                        return Ok("Can't delete Exists in another table  ");
-                    }
-                    string deleteRoleQuery = $"Delete from Role_mst where Role_Id='{id}'";
+                    return StatusCode(StatusCodes.Status404NotFound, new { message = "Can't delete Exists in another table ", DUP = false });
+
+                }
+                string deleteRoleQuery = $"Delete from Role_mst where Role_Id='{id}'";
 
                 LkDataConnection.Connection.ExecuteNonQuery(deleteRoleQuery);
-                return Ok("RoleName Deleted successfully");
+                return StatusCode(StatusCodes.Status200OK, new { message = "RoleName Deleted successfully" });
+
 
             }
             catch (Exception ex)

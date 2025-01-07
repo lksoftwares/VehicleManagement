@@ -21,9 +21,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
     });
 
-//var jwtSettings = builder.Configuration["Jwt:Key"];
-//var jwt = builder.Configuration["Jwt:Issuer"];
-//var Audience = builder.Configuration["Jwt:Audience"];
+
 
 
 
