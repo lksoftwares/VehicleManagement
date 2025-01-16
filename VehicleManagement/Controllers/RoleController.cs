@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
+using System.Runtime.Intrinsics.Arm;
 using VehicleManagement.Classes;
 using VehicleManagement.Model;
 
@@ -12,6 +13,7 @@ namespace VehicleManagement.Controllers
     [ApiController]
     public class RoleController : ControllerBase
     {
+        private apiResponse Resp = new apiResponse();
         private readonly ConnectionClass _connection;
          LkDataConnection.DataAccess _dc= new LkDataConnection.DataAccess();
        LkDataConnection.SqlQueryResult _query= new LkDataConnection.SqlQueryResult();
@@ -30,31 +32,50 @@ namespace VehicleManagement.Controllers
         [Route("GetAllRole")]
         public IActionResult GetAllRole()
         {
-            string query = $"select * from Role_mst ORDER BY Role_Name ASC";
-            Console.WriteLine(query);
-            var connection = new LkDataConnection.Connection();
-
-            var result = connection.bindmethod(query);
-
-
-            DataTable Table = result._DataTable;
-
-            var RoleList = new List<RolesModel>();
-
-            foreach (DataRow row in Table.Rows)
+            try
             {
-                RoleList.Add(new RolesModel
+                string query = $"select * from Role_mst ORDER BY Role_Name ASC";
+                Console.WriteLine(query);
+                var connection = new LkDataConnection.Connection();
+
+                var result = connection.bindmethod(query);
+
+
+                DataTable Table = result._DataTable;
+
+                var RoleList = new List<RolesModel>();
+
+                foreach (DataRow row in Table.Rows)
                 {
-                    Role_Id = Convert.ToInt32(row["Role_Id"]),
-                    Role_Name = row["Role_Name"].ToString(),
-                    Permission_Id = Convert.ToInt32(row["Permission_Id"]),
+                    RoleList.Add(new RolesModel
+                    {
+                        Role_Id = Convert.ToInt32(row["Role_Id"]),
+                        Role_Name = row["Role_Name"].ToString(),
+                        Permission_Id = Convert.ToInt32(row["Permission_Id"]),
 
 
-                });
+                    });
+                }
+
+              
+
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = $"Data fetched successfully ";
+                Resp.ApiResponse = RoleList;
+                Resp.IsSuccess = true;
+
+                return Ok(Resp);
             }
-          
+            catch (Exception ex)
+            {
+            
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
 
-            return Ok(RoleList);
+            return StatusCode(StatusCodes.Status500InternalServerError,Resp);
+
+            }
+
         }
 
         [HttpPost]
@@ -74,19 +95,36 @@ namespace VehicleManagement.Controllers
                 bool isDuplicate = duplicacyChecker.CheckDuplicate(duplicacyParameter);
                 if (isDuplicate)
                 {
-                    return StatusCode(StatusCodes.Status208AlreadyReported, new { message = "RoleName already exists.", DUP = true });
+                    Resp.StatusCode = StatusCodes.Status208AlreadyReported;
+                    Resp.Message = $"RoleName already exists.";
+                    Resp.Dup = true;
+
+                    return StatusCode(StatusCodes.Status208AlreadyReported, Resp);
                 }
                 if (String.IsNullOrEmpty(role.Role_Name))
                 {
-                    return StatusCode(StatusCodes.Status200OK, new { message = "RoleName Can't be Blank Or Null", DUP = false });
+                    Resp.StatusCode = StatusCodes.Status404NotFound;
+                    Resp.Message = $"RoleName Can't be Blank Or Null";
+
+                    return StatusCode(StatusCodes.Status404NotFound, Resp);
                 }
                 _query = _dc.InsertOrUpdateEntity(role, "Role_mst", -1);
-                return StatusCode(StatusCodes.Status200OK, new { message = "RoleName Added Successfully", DUP = false });
+
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = $"RoleName Added Successfully";
+                Resp.IsSuccess = true;
+
+                return StatusCode(StatusCodes.Status200OK, Resp);
 
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Error: {ex.Message}");
+
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
+               
+
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
             }
         }
 
@@ -104,7 +142,10 @@ namespace VehicleManagement.Controllers
 
                 if (result==0)
                 {
-                    return StatusCode(StatusCodes.Status404NotFound, new { message = "Role ID does not exist.", DUP = false });
+                    Resp.StatusCode = StatusCodes.Status404NotFound;
+                    Resp.Message = $"Role ID does not exist.";
+
+                    return StatusCode(StatusCodes.Status404NotFound, Resp);
                 }
 
                 var duplicacyChecker = new CheckDuplicacy(_connection);
@@ -122,21 +163,36 @@ namespace VehicleManagement.Controllers
 
                 if (isDuplicate)
                 {
-                    return StatusCode(StatusCodes.Status208AlreadyReported, new { message = "RoleName already exists.", DUP = true });
+                    Resp.StatusCode = StatusCodes.Status208AlreadyReported;
+                    Resp.Message = $"RoleName already exists.";
+                    Resp.Dup = true;
+
+                    return StatusCode(StatusCodes.Status208AlreadyReported, Resp);
 
                 }
                 if (String.IsNullOrEmpty(role.Role_Name))
                 {
-                    return StatusCode(StatusCodes.Status200OK, new { message = "RoleName Can't be Blank Or Null", DUP = true });
+                    Resp.StatusCode = StatusCodes.Status208AlreadyReported;
+                    Resp.Message = $"RoleName Can't be Blank Or Null";
+
+                    return StatusCode(StatusCodes.Status208AlreadyReported, Resp);
 
                 }
                 _query = _dc.InsertOrUpdateEntity(role, "Role_mst", Role_ID, "Role_Id");
-                return StatusCode(StatusCodes.Status200OK, new { message = "RoleName Updated Successfully", DUP = false });
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = "RoleName Updated Successfully";
+                Resp.IsSuccess = true;
+
+                return StatusCode(StatusCodes.Status200OK, Resp);
 
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Error{ex.Message}");
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
+
+
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
             }
         }
 
@@ -155,7 +211,11 @@ namespace VehicleManagement.Controllers
 
                 if (result == 0)
                 {
-                    return StatusCode(StatusCodes.Status404NotFound, new { message = "Role ID does not exist.", DUP = false });
+                    Resp.StatusCode = StatusCodes.Status404NotFound;
+                    Resp.Message = $"Role ID does not exist.";
+
+                    return StatusCode(StatusCodes.Status404NotFound, Resp);
+                  
                 }
 
                 string checkQuery = $"SELECT COUNT(*) AS recordCount FROM User_mst WHERE Role_Id = {id}";
@@ -164,19 +224,32 @@ namespace VehicleManagement.Controllers
                 int roleIdInUser = Convert.ToInt32(_connection.ExecuteScalar(checkQuery));
                     if (roleIdInUser > 0)
                     {
-                    return StatusCode(StatusCodes.Status404NotFound, new { message = "Can't delete Exists in another table ", DUP = false });
+                    Resp.StatusCode = StatusCodes.Status404NotFound;
+                    Resp.Message = $"Can't delete Exists in another table";
+
+                    return StatusCode(StatusCodes.Status404NotFound, Resp);
+                   
 
                 }
                 string deleteRoleQuery = $"Delete from Role_mst where Role_Id='{id}'";
 
                 LkDataConnection.Connection.ExecuteNonQuery(deleteRoleQuery);
-                return StatusCode(StatusCodes.Status200OK, new { message = "RoleName Deleted successfully" });
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = "RoleName Deleted successfully";
+                Resp.IsSuccess = true;
+              
+
+                return StatusCode(StatusCodes.Status200OK, Resp);
 
 
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Error{ex.Message}");
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
+
+
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
             }
         }
 

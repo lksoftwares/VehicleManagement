@@ -19,6 +19,7 @@ namespace VehicleManagement.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
+        private apiResponse Resp = new apiResponse();
         private   IConfiguration _config;
         EncryptDecrypt encryptPassword = new EncryptDecrypt();
         private readonly  IWebHostEnvironment _hostingEnvironment;
@@ -42,19 +43,21 @@ namespace VehicleManagement.Controllers
             )
         {
 
-         IActionResult response = Unauthorized();
+        // IActionResult response = Unauthorized();
             try
             {
 
                 string hashedPassword = encryptPassword.Encrypt("ABC", user.User_Password);
 
 
-                //string query = $"SELECT U.*,R.* FROM User_Mst U  Join Role_Mst R on U.Role_Id=R.Role_Id WHERE  U.User_Email = '{user.User_Email}' AND U.User_Password='{hashedPassword}'";
-              
+                  string query = $"SELECT U.*,R.* FROM User_Mst U  Join Role_Mst R on U.Role_Id=R.Role_Id WHERE  U.User_Email = '{user.User_Email}' AND U.User_Password='{hashedPassword}'";
 
 
 
-                string query = $"SELECT U.*, R.Role_Id,R.Role_Name, M.Menu_Name, P.Permission_Type  FROM User_Mst U   JOIN Role_Mst R ON U.Role_Id = R.Role_Id   JOIN Menu_Role_Permission_Mst RMP ON R.Role_Id = RMP.Role_Id   JOIN Menu_Mst M ON RMP.Menu_Id = M.Menu_Id  JOIN Permission_Mst P ON RMP.Permission_Id = P.Permission_Id  WHERE U.User_Email = '{user.User_Email}' AND U.User_Password = '{hashedPassword}'";
+
+
+                //     string query = $"SELECT U.*, R.Role_Id,R.Role_Name, M.Menu_Name, P.Permission_Type  FROM User_Mst U   JOIN Role_Mst R ON U.Role_Id = R.Role_Id   JOIN Menu_Role_Permission_Mst RMP ON R.Role_Id = RMP.Role_Id   JOIN Menu_Mst M ON RMP.Menu_Id = M.Menu_Id  JOIN Permission_Mst P ON RMP.Permission_Id = P.Permission_Id  WHERE U.User_Email = '{user.User_Email}' AND U.User_Password = '{hashedPassword}'";
+
 
                 var connection = new LkDataConnection.Connection();
 
@@ -63,73 +66,51 @@ namespace VehicleManagement.Controllers
                 DataTable Table = result._DataTable;
                 DataRow userData = Table.Rows.Count > 0 ? Table.Rows[0] : null;
 
-                Console.WriteLine($" Here is MEnu  {userData["Menu_Name"]}");
 
 
                 if (userData == null)
                 {
-                    return Unauthorized(new { message = "User not found" });
+                    Resp.StatusCode = StatusCodes.Status404NotFound;
+                    Resp.Message = "User not found";
+
+                    return StatusCode(StatusCodes.Status404NotFound, Resp);
                 }
-
-
-              
-
 
 
                 if (hashedPassword != userData["User_Password"].ToString())
                 {
-                    return Unauthorized(new { message = "Password not matched" });
+                    Resp.StatusCode = StatusCodes.Status404NotFound;
+                    Resp.Message = "Password not matched";
+
+                    return StatusCode(StatusCodes.Status404NotFound, Resp);
                 }
 
 
                 if (userData["Role_Id"].ToString() != user.Role_Id.ToString())
+
                 {
-                    return Unauthorized(new { message = "Role not matched" });
+                    Resp.StatusCode = StatusCodes.Status404NotFound;
+                    Resp.Message = "Role not matched";
+
+                    return StatusCode(StatusCodes.Status404NotFound, Resp);
+
                 }
 
                 if (!(bool)userData["User_Status"])
                 {
-                    return Unauthorized(new { message = "User is not active. Please contact the administrator." });
+                    Resp.StatusCode = StatusCodes.Status404NotFound;
+                    Resp.Message = "User is not active. Please contact the administrator.";
+
+                    return StatusCode(StatusCodes.Status404NotFound, Resp);
                 }
-                //            var menupermission = Table.AsEnumerable()
-                //.GroupBy(row => row["Menu_Name"].ToString()) 
-                //.Select(group => new
-                //{
-                //    MenuName = group.Key,
-                //    Permissions = group.Select(row => row["Permission_Type"].ToString()).ToList()
-                //})
-                //.ToArray();
-                //        var menupermission = Table.AsEnumerable().GroupBy(row => row["Menu_Name"].ToString()).ToArray(group => group.Key,
-                //group => group.Select(row => row["Permission_Type"].ToString()).ToList());
-
-                var menuPermissions = Table.AsEnumerable()
-    .GroupBy(row => row["Menu_Name"].ToString())
-    .ToDictionary(
-        MenuName => MenuName.Key,
-        Permissions => Permissions.Select(row => row["Permission_Type"].ToString()).ToList()
-    );
-
-
-
-
-                //var menuPermissions = new Dictionary<string, List<string>>();
-                //foreach (DataRow row in Table.Rows)
-                //{
-                //    string menuName = row["Menu_Name"].ToString();
-                //    string permissionType = row["Permission_Type"].ToString();
-
-                //    if (!menuPermissions.ContainsKey(menuName))
-                //    {
-                //        menuPermissions[menuName] = new List<string>();
-                //    }
-
-                //    menuPermissions[menuName].Add(permissionType);
-                //}
-
-             
-
-
-                WebToken _web = new WebToken();
+              
+    //            var menuPermissions = Table.AsEnumerable()
+    // .GroupBy(row => row["Menu_Name"].ToString())
+    //.ToDictionary(
+    //    MenuName => MenuName.Key,
+    //    Permissions => Permissions.Select(row => row["Permission_Type"].ToString()).ToList()
+    //);
+   WebToken _web = new WebToken();
                 UserDetails _userdetails = new UserDetails();
                 List<KeyDetails> lst = new List<KeyDetails>();
                 List<KeyDetails> lst1 = new List<KeyDetails>
@@ -173,27 +154,50 @@ namespace VehicleManagement.Controllers
 
                 Console.WriteLine($"Here is the token {token}");
                
-                response = Ok(new
+                //response = Ok(new
+                //{
+                //    token,
+                //    User_Id = userData["User_Id"],
+                //    Role_Id = userData["Role_Id"],
+                //    Role_Name = userData["Role_Name"],
+                ////    Menus = userData["Menu_Name"],
+                //      Menus= menuPermissions
+                //    //  Permission_type = userData["Permission_Type"],
+
+
+
+                //});
+
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = "User Loged In successfully";
+                Resp.IsSuccess = true;
+                Resp.ApiResponse = new
                 {
                     token,
                     User_Id = userData["User_Id"],
                     Role_Id = userData["Role_Id"],
                     Role_Name = userData["Role_Name"],
-                //    Menus = userData["Menu_Name"],
-                      Menus= menuPermissions
+                    //    Menus = userData["Menu_Name"],
+                 //   Menus = menuPermissions
                     //  Permission_type = userData["Permission_Type"],
 
 
 
-                });
+                };
+
+                return StatusCode(StatusCodes.Status200OK, Resp);
+
 
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Error: {ex.Message}");
+
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
             }
 
-            return response;
         }
 
 
@@ -229,11 +233,18 @@ namespace VehicleManagement.Controllers
 
                 if (isDuplicate)
                 {
-                    return StatusCode(StatusCodes.Status208AlreadyReported, new { message = "Duplicate ! Users exists.", DUP = true });
+                    Resp.StatusCode = StatusCodes.Status208AlreadyReported;
+                    Resp.Message = $"Duplicate ! Users exists.";
+                    Resp.Dup = true;
+
+                    return StatusCode(StatusCodes.Status208AlreadyReported, Resp);
                 }
                 if (String.IsNullOrEmpty(user.User_Email) || String.IsNullOrEmpty(user.User_Name) || String.IsNullOrEmpty(user.User_Password))
                 {
-                    return StatusCode(StatusCodes.Status208AlreadyReported, new { message = "User Email ,Name,Password can't be blank " });
+                    Resp.StatusCode = StatusCodes.Status404NotFound;
+                    Resp.Message = $"User Email ,Name,Password can't be blank ";
+
+                    return StatusCode(StatusCodes.Status404NotFound, Resp);
 
                 }
                 if (user.User_Name != null || !string.IsNullOrEmpty(user.User_Name))
@@ -245,7 +256,11 @@ namespace VehicleManagement.Controllers
 
             
                 _query = _dc.InsertOrUpdateEntity(user, "User_Mst", -1);
-                return StatusCode(StatusCodes.Status200OK, new { message = "USer Register successfully" });
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = "User Register successfully";
+                Resp.IsSuccess = true;
+
+                return StatusCode(StatusCodes.Status200OK, Resp);
 
 
 
@@ -253,7 +268,10 @@ namespace VehicleManagement.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Error:{ex.Message}");
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
             }
 
         }
@@ -266,30 +284,51 @@ namespace VehicleManagement.Controllers
         [Route("ProfileImage/{User_ID}")]
         public IActionResult GetProfileImage(int User_ID)
         {
-            string query = $"SELECT Image FROM User_mst WHERE User_Id = {User_ID}";
-            var connection = new LkDataConnection.Connection();
-            var result = connection.bindmethod(query);
-            DataTable Table = result._DataTable;
-
-
-            if (Table.Rows.Count > 0)
+            try
             {
-                string imageName = Table.Rows[0]["Image"]?.ToString();
+                string query = $"SELECT Image FROM User_mst WHERE User_Id = {User_ID}";
+                var connection = new LkDataConnection.Connection();
+                var result = connection.bindmethod(query);
+                DataTable Table = result._DataTable;
 
-                if (!string.IsNullOrEmpty(imageName))
+
+                if (Table.Rows.Count > 0)
                 {
-                    var imageUrl = $"http://192.168.1.66:7148/public/images/{imageName}";
+                    string imageName = Table.Rows[0]["Image"]?.ToString();
 
-                    return Ok(new { ImageUrl = imageUrl });
+                    if (!string.IsNullOrEmpty(imageName))
+                    {
+                        var imageUrl = $"http://192.168.1.57:7148/public/images/{imageName}";
+
+                        Resp.StatusCode = StatusCodes.Status200OK;
+                        Resp.Message = "Profile Updated  successfully";
+                        Resp.IsSuccess = true;
+                        Resp.ApiResponse = new { ImageUrl = imageUrl} ;
+
+                        return StatusCode(StatusCodes.Status200OK, Resp);
+                    }
+                    else
+                    {
+                        Resp.StatusCode = StatusCodes.Status404NotFound;
+                        Resp.Message = $"No image found for this user ";
+
+                        return StatusCode(StatusCodes.Status404NotFound, Resp);
+                    }
                 }
                 else
                 {
-                    return NotFound(new { Message = "No image found for this user." });
+                    Resp.StatusCode = StatusCodes.Status404NotFound;
+                    Resp.Message = $"User Not found  ";
+
+                    return StatusCode(StatusCodes.Status404NotFound, Resp);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                return NotFound(new { Message = "User not found." });
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
             }
         }
 
@@ -325,8 +364,12 @@ namespace VehicleManagement.Controllers
 
                 if (isDuplicate)
                 {
-                    return StatusCode(StatusCodes.Status208AlreadyReported, new { message = "Duplicate ! Users exists.", DUP = true });
 
+                    Resp.StatusCode = StatusCodes.Status208AlreadyReported;
+                    Resp.Message = $"Duplicate ! Users exists.";
+                    Resp.Dup = true;
+
+                    return StatusCode(StatusCodes.Status208AlreadyReported, Resp);
                 }
                 if (user.User_Password != null)
                 {
@@ -344,12 +387,19 @@ namespace VehicleManagement.Controllers
                 }
 
                 _query = _dc.InsertOrUpdateEntity(user, "User_mst", User_ID, "User_Id", "wwwroot/Public/Images");
-                return StatusCode(StatusCodes.Status200OK, new { message = "Users Updated Successfully", DUP = false });
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = "Users Updated Successfully";
+                Resp.IsSuccess = true;
+
+                return StatusCode(StatusCodes.Status200OK, Resp);
 
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Error{ex.Message}");
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
             }
         }
 
@@ -359,84 +409,111 @@ namespace VehicleManagement.Controllers
 
 
         [HttpGet]
-        [Route("AllUsers")]
+        [Route("GetAllUsers")]
 
         public IActionResult GetAllUSers([FromQuery] IDictionary<string, string> param)
         {
-            var query = $"select U.*,R.Role_Name From User_Mst U join Role_Mst R ON R.Role_Id=U.Role_Id";
-
-            List<string> filter = new List<string>();
-            Dictionary<string, object> sqlparams = new Dictionary<string, object>();
-            if (param.TryGetValue("User_Id", out string User_ID))
+            try
             {
-                filter.Add("  U.User_Id = @User_ID");
-                sqlparams.Add("@User_ID", User_ID);
-            }
-            if (param.TryGetValue("Role_Id", out string Role_ID))
-            {
-                filter.Add("  U.Role_Id = @Role_ID");
-                sqlparams.Add("@Role_ID", Role_ID);
-            }
-
-            if (filter.Count > 0)
-            {
-                query += " WHERE " + string.Join(" AND ", filter);
-            }
+                var query = $"select U.*,R.Role_Name From User_Mst U join Role_Mst R ON R.Role_Id=U.Role_Id ";
+                //string Shiftquery = "select Count(*) from User_Shift_Mst";
 
 
-            DataTable UserTable = _connectionClass.ExecuteQueryWithResult(query, sqlparams);
-            var UsersList = new List<UsersModel>();
 
-            foreach (DataRow row in UserTable.Rows)
-            {
+                List<string> filter = new List<string>();
+                Dictionary<string, object> sqlparams = new Dictionary<string, object>();
+                if (param.TryGetValue("User_Id", out string User_ID))
+                {
+                    filter.Add("  U.User_Id = @User_ID");
+                    sqlparams.Add("@User_ID", User_ID);
+                }
+                if (param.TryGetValue("Role_Id", out string Role_ID))
+                {
+                    filter.Add("  U.Role_Id = @Role_ID");
+                    sqlparams.Add("@Role_ID", Role_ID);
+                }
+                //if (param.TryGetValue("Shift_Id", out string Shift_Id))
+                //{
+                //    filter.Add("  U.Shift_Id = @Shift_Id");
+                //    sqlparams.Add("@Shift_Id", Shift_Id);
+                //}
+
+                if (filter.Count > 0)
+                {
+                    query += " WHERE " + string.Join(" AND ", filter);
+                }
 
 
-                UsersList.Add(new UsersModel
+                DataTable UserTable = _connectionClass.ExecuteQueryWithResult(query, sqlparams);
+                var UsersList = new List<UsersModel>();
+
+                foreach (DataRow row in UserTable.Rows)
                 {
 
-                    User_Id = Convert.ToInt32(row["User_Id"]),
-                    Role_Id = Convert.ToInt32(row["Role_Id"]),
 
-                    User_Name = row["User_Name"].ToString(),
-                    User_Email = row["User_Email"].ToString(),
-                    User_Password = encryptPassword.Decrypt("ABC",row["User_Password"].ToString()),
+                    UsersList.Add(new UsersModel
+                    {
+
+                        User_Id = Convert.ToInt32(row["User_Id"]),
+                        Role_Id = Convert.ToInt32(row["Role_Id"]),
+
+                        User_Name = row["User_Name"].ToString(),
+                        User_Email = row["User_Email"].ToString(),
+                        User_Password = encryptPassword.Decrypt("ABC",
+                        row["User_Password"].ToString()),
+
+                        //    Shift_Name= row["Shift_Name"].ToString(),
+                        userRole = row["Role_Name"].ToString(),
+
+                        User_Status = Convert.ToInt32(row["User_Status"])
 
 
-                    userRole = row["Role_Name"].ToString(),
-
-                    User_Status = Convert.ToInt32(row["User_Status"])
+                    }); ;
 
 
-                }); ;
 
+                }
+                string TotalUsers = $"select Count(*) as totalUsers from User_Mst where Role_Id=6";
+                DataTable Table = _connectionClass.ExecuteQueryWithResult(TotalUsers);
+                int TotalUser = 0;
+                if (Table.Rows.Count > 0)
+                {
+                    TotalUser = Table.Rows[0]["totalUsers"] != DBNull.Value
+                     ? Convert.ToInt32(Table.Rows[0]["totalUsers"])
+                     : 0;
+                }
+                string TotalAdmin = $"select Count(*) as totalAdmin from User_Mst where Role_Id=1";
+                DataTable AdminTable = _connectionClass.ExecuteQueryWithResult(TotalAdmin);
+                int Admins = 0;
+                if (AdminTable.Rows.Count > 0)
+                {
+                    Admins = AdminTable.Rows[0]["totalAdmin"] != DBNull.Value
+                     ? Convert.ToInt32(AdminTable.Rows[0]["totalAdmin"])
+                     : 0;
+                }
 
+               
+
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = "User Fetched  successfully";
+                Resp.IsSuccess = true;
+                Resp.ApiResponse = new
+                {
+                    TotalAdmin = Admins,
+                    UsersLists = UsersList,
+                    TotalUsers = TotalUser
+                };
+
+                return StatusCode(StatusCodes.Status200OK, Resp);
 
             }
-            string TotalUsers = $"select Count(*) as totalUsers from User_Mst where Role_Id=6";
-            DataTable Table = _connectionClass.ExecuteQueryWithResult(TotalUsers);
-            int TotalUser = 0;
-            if (Table.Rows.Count > 0)
+            catch (Exception ex)
             {
-                TotalUser = Table.Rows[0]["totalUsers"] != DBNull.Value
-                 ? Convert.ToInt32(Table.Rows[0]["totalUsers"])
-                 : 0;
-            }
-            string TotalAdmin = $"select Count(*) as totalAdmin from User_Mst where Role_Id=1";
-            DataTable AdminTable = _connectionClass.ExecuteQueryWithResult(TotalAdmin);
-            int Admins = 0;
-            if (AdminTable.Rows.Count > 0)
-            {
-                Admins = AdminTable.Rows[0]["totalAdmin"] != DBNull.Value
-                 ? Convert.ToInt32(AdminTable.Rows[0]["totalAdmin"])
-                 : 0;
-            }
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
 
-            return Ok(new
-            {
-                TotalAdmin = Admins,
-                UsersLists = UsersList,
-                TotalUsers = TotalUser
-            });
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
+            }
 
 
         }
@@ -456,7 +533,10 @@ namespace VehicleManagement.Controllers
 
                 if (result == 0)
                 {
-                    return StatusCode(StatusCodes.Status404NotFound, new { message = "User ID does not exist.", DUP = false });
+                    Resp.StatusCode = StatusCodes.Status404NotFound;
+                    Resp.Message = $"User ID does not exist.";
+
+                    return StatusCode(StatusCodes.Status404NotFound, Resp);
                 }
 
                 _connectionClass.GetSqlConnection().Close();
@@ -470,19 +550,32 @@ namespace VehicleManagement.Controllers
 
                 if (roleCount == 1 && currentUserRoleCount == 1)
                 {
-                    return StatusCode(StatusCodes.Status200OK, new { message = "Can't delete. This is the only Admin in the Table" });
+                    Resp.StatusCode = StatusCodes.Status200OK;
+                    Resp.Message = $"Can't delete. This is the only Admin in the Table";
+
+                    return StatusCode(StatusCodes.Status404NotFound, Resp);
+
                 }
                 _connectionClass.GetSqlConnection().Close();
 
 
                 string deleteUserQuery = $"DELETE FROM User_Mst WHERE User_Id = {User_ID}";
                 LkDataConnection.Connection.ExecuteNonQuery(deleteUserQuery);
-                return StatusCode(StatusCodes.Status200OK, new { message = "User deleted successfully" });
+
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = "User deleted successfully";
+                Resp.IsSuccess = true;
+           
+
+                return StatusCode(StatusCodes.Status200OK, Resp);
 
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Error: {ex.Message}");
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
             }
         }
 

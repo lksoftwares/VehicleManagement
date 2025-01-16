@@ -14,7 +14,7 @@ namespace VehicleManagement.Controllers
     [ApiController]
     public class VehicleController : ControllerBase
     {
-
+        private apiResponse Resp = new apiResponse();
       
             private readonly ConnectionClass _connection;
             LkDataConnection.DataAccess _dc = new LkDataConnection.DataAccess();
@@ -34,6 +34,8 @@ namespace VehicleManagement.Controllers
             [Route("GetAllVehicle")]
             public IActionResult GetAllVehicle()
             {
+            try
+            {
                 string query = $"select * from Vehicle_Mst ";
                 Console.WriteLine(query);
                 var connection = new LkDataConnection.Connection();
@@ -47,23 +49,37 @@ namespace VehicleManagement.Controllers
 
                 foreach (DataRow row in Table.Rows)
                 {
-                VehicleList.Add(new VehiclesModel
+                    VehicleList.Add(new VehiclesModel
                     {
                         Vehicle_Id = Convert.ToInt32(row["Vehicle_Id"]),
                         Vehicle_No = row["Vehicle_No"].ToString(),
-                    Owner_Name = row["Owner_Name"].ToString(),
-                    Contact_Number = row["Contact_Number"].ToString(),
-                    Vehicle_Status = Convert.ToBoolean(row["Vehicle_Status"]),
-                    Created_At = Convert.ToDateTime(row["Created_At"])
+                        Owner_Name = row["Owner_Name"].ToString(),
+                        Contact_Number = row["Contact_Number"].ToString(),
+                        Vehicle_Status = Convert.ToBoolean(row["Vehicle_Status"]),
+                        Created_At = Convert.ToDateTime(row["Created_At"])
 
 
 
-                });
+                    });
                 }
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = " VehicleFetched Successfully";
+                Resp.IsSuccess = true;
+                Resp.ApiResponse = VehicleList;
 
 
-                return Ok(VehicleList);
+                return StatusCode(StatusCodes.Status200OK, Resp);
+
             }
+            catch (Exception ex)
+            {
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
+
+
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
+            }
+        }
 
             [HttpPost]
 
@@ -83,23 +99,38 @@ namespace VehicleManagement.Controllers
                     bool isDuplicate = duplicacyChecker.CheckDuplicate(duplicacyParameter);
                     if (isDuplicate)
                     {
-                        return StatusCode(StatusCodes.Status208AlreadyReported, new { message = "Vehicle Number already exists.", DUP = true });
+                    Resp.StatusCode = StatusCodes.Status208AlreadyReported;
+                    Resp.Message = $"Vehicle Number already exists.";
+                    Resp.Dup = true;
+
+                    return StatusCode(StatusCodes.Status208AlreadyReported, Resp);
                     }
                     if (String.IsNullOrEmpty(vehicle.Vehicle_No))
                     {
-                        return StatusCode(StatusCodes.Status200OK, new { message = "Vehicle No Can't be Blank Or Null", DUP = false });
+                    Resp.StatusCode = StatusCodes.Status404NotFound;
+                    Resp.Message = $"Vehicle No Can't be Blank Or Null";
+
+                    return StatusCode(StatusCodes.Status404NotFound, Resp);
                     }
            
                     vehicle.Created_At = DateTime.Now;
                
                 _query = _dc.InsertOrUpdateEntity(vehicle, "Vehicle_Mst", -1);
-                    return StatusCode(StatusCodes.Status200OK, new { message = "Vehicle Added Successfully", DUP = false });
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = "Vehicle Added Successfully";
+                Resp.IsSuccess = true;
+
+                return StatusCode(StatusCodes.Status200OK, Resp);
 
                 }
                 catch (Exception ex)
                 {
-                    return StatusCode(StatusCodes.Status500InternalServerError, $"Error: {ex.Message}");
-                }
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
+
+
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
+            }
             }
 
             [HttpPut]
@@ -133,19 +164,29 @@ namespace VehicleManagement.Controllers
 
                     if (isDuplicate)
                     {
-                        return StatusCode(StatusCodes.Status208AlreadyReported, new { message = "Vehicle Number already exists.", DUP = true });
+                    Resp.StatusCode = StatusCodes.Status208AlreadyReported;
+                    Resp.Message = $"Vehicle Number already exists.";
+                    Resp.Dup = true;
 
-                    }
+                    return StatusCode(StatusCodes.Status208AlreadyReported, Resp);
+                }
                    
                 Vehicle.Created_At = DateTime.Now;
                 _query = _dc.InsertOrUpdateEntity(Vehicle, "Vehicle_Mst", Vehicle_Id, "Vehicle_Id");
-                    return StatusCode(StatusCodes.Status200OK, new { message = "Vehicle Updated Successfully", DUP = false });
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = "Vehicle Updated Successfully";
+                Resp.IsSuccess = true;
 
-                }
+                return StatusCode(StatusCodes.Status200OK, Resp);
+            }
                 catch (Exception ex)
                 {
-                    return StatusCode(StatusCodes.Status500InternalServerError, $"Error{ex.Message}");
-                }
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
+
+
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
+            }
             }
 
             [HttpDelete]
@@ -163,20 +204,31 @@ namespace VehicleManagement.Controllers
 
                     if (result == 0)
                     {
-                        return StatusCode(StatusCodes.Status404NotFound, new { message = " Vehicle ID does not exist.", DUP = false });
+                    Resp.StatusCode = StatusCodes.Status404NotFound;
+                    Resp.Message = $"Vehicle ID does not exist";
+
+                    return StatusCode(StatusCodes.Status404NotFound, Resp);
                     }
 
                    
                     string deleteRoleQuery = $"Delete from Vehicle_Mst where Vehicle_Id='{Vehicle_Id}'";
 
                     LkDataConnection.Connection.ExecuteNonQuery(deleteRoleQuery);
-                return StatusCode(StatusCodes.Status200OK, new { message = "Vehicle Number Deleted successfully" });
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = "Vehicle Number Deleted successfully";
+                Resp.IsSuccess = true;
+
+                return StatusCode(StatusCodes.Status200OK, Resp);
 
             }
                 catch (Exception ex)
                 {
-                    return StatusCode(StatusCodes.Status500InternalServerError, $"Error{ex.Message}");
-                }
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
+
+
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
+            }
             }
 
 

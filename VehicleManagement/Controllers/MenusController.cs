@@ -12,7 +12,7 @@ namespace VehicleManagement.Controllers
     [ApiController]
     public class MenusController : ControllerBase
     {
-
+        private apiResponse Resp = new apiResponse();
         private readonly ConnectionClass _connection;
         LkDataConnection.DataAccess _dc = new LkDataConnection.DataAccess();
         LkDataConnection.SqlQueryResult _query = new LkDataConnection.SqlQueryResult();
@@ -32,32 +32,51 @@ namespace VehicleManagement.Controllers
 
         [Route("GetAllMenu")]
         public IActionResult GetAllMenu()
+            
         {
-            string query = $"select * from Menu_Mst ORDER BY Menu_Name ASC";
-            Console.WriteLine(query);
-            var connection = new LkDataConnection.Connection();
-
-            var result = connection.bindmethod(query);
-
-
-            DataTable Table = result._DataTable;
-
-            var MenuList = new List<MenusModel>();
-
-            foreach (DataRow row in Table.Rows)
+            try
             {
-                MenuList.Add(new MenusModel
+                string query = $"select * from Menus_Mst ORDER BY Menu_Name ASC";
+                Console.WriteLine(query);
+                var connection = new LkDataConnection.Connection();
+
+                var result = connection.bindmethod(query);
+
+
+                DataTable Table = result._DataTable;
+
+                var MenuList = new List<MenusModel>();
+
+                foreach (DataRow row in Table.Rows)
                 {
-                    Menu_Id = Convert.ToInt32(row["Menu_Id"]),
-                    Menu_Name = row["Menu_Name"].ToString()
-                   
+                    MenuList.Add(new MenusModel
+                    {
+                        Menu_Id = Convert.ToInt32(row["Menu_Id"]),
+                        Menu_Name = row["Menu_Name"].ToString(),
+                        Parent_Id = row["Parent_Id"] as int?
+                        // Parent_Id = Convert.ToInt32(row["Menu_Id"])
 
 
-                });
+
+
+                    });
+                }
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = $"Data fetched successfully ";
+                Resp.ApiResponse = MenuList;
+                Resp.IsSuccess = true;
+
+                return Ok(Resp);
+
             }
+            catch (Exception ex)
+            {
 
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
 
-            return Ok(MenuList);
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
+            }
         }
 
 
@@ -71,26 +90,41 @@ namespace VehicleManagement.Controllers
                 var duplicacyChecker = new CheckDuplicacy(_connection);
                 var duplicacyParameter = new CheckDuplicacyPerameter
                 {
-                    tableName = "Menu_Mst",
+                    tableName = "Menus_Mst",
                     fields = new[] { "Menu_Name" },
                     values = new[] { menus.Menu_Name }
                 };
                 bool isDuplicate = duplicacyChecker.CheckDuplicate(duplicacyParameter);
                 if (isDuplicate)
                 {
-                    return StatusCode(StatusCodes.Status208AlreadyReported, new { message = "Menu already exists.", DUP = true });
+                    Resp.StatusCode = StatusCodes.Status208AlreadyReported;
+                    Resp.Message = $"Menu already exists";
+                    Resp.Dup = true;
+
+                    return StatusCode(StatusCodes.Status208AlreadyReported, Resp);
+
                 }
                 if (String.IsNullOrEmpty(menus.Menu_Name))
                 {
-                    return StatusCode(StatusCodes.Status200OK, new { message = "Menu  Can't be Blank Or Null", DUP = false });
+                    Resp.StatusCode = StatusCodes.Status404NotFound;
+                    Resp.Message = $"Menu  Can't be Blank Or Null";
+
+                    return StatusCode(StatusCodes.Status404NotFound, Resp);
                 }
-                _query = _dc.InsertOrUpdateEntity(menus, "Menu_Mst", -1);
-                return StatusCode(StatusCodes.Status200OK, new { message = "Menu Added Successfully", DUP = false });
+                _query = _dc.InsertOrUpdateEntity(menus, "Menus_Mst", -1);
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = $"Menu Added Successfully";
+                Resp.IsSuccess = true;
+
+                return StatusCode(StatusCodes.Status200OK, Resp);
 
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Error: {ex.Message}");
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
             }
         }
 
@@ -102,8 +136,8 @@ namespace VehicleManagement.Controllers
             try
             {
 
-                var roleExists = $"SELECT COUNT(*) FROM Menu_Mst WHERE Menu_Id = {Menu_Id} ";
-                int result = Convert.ToInt32(_connection.ExecuteScalar(roleExists));
+                var MenuExists = $"SELECT COUNT(*) FROM Menus_Mst WHERE Menu_Id = {Menu_Id} ";
+                int result = Convert.ToInt32(_connection.ExecuteScalar(MenuExists));
 
 
                 if (result == 0)
@@ -114,7 +148,7 @@ namespace VehicleManagement.Controllers
                 var duplicacyChecker = new CheckDuplicacy(_connection);
                 var duplicacyParameter = new CheckDuplicacyPerameter
                 {
-                    tableName = "Menu_Mst",
+                    tableName = "Menus_Mst",
                     fields = new[] { "Menu_Name" },
                     values = new[] { menus.Menu_Name },
                     idField = "Menu_Id",
@@ -126,22 +160,34 @@ namespace VehicleManagement.Controllers
 
                 if (isDuplicate)
                 {
-                    return StatusCode(StatusCodes.Status208AlreadyReported, new { message = "Menu already exists.", DUP = true });
+                    Resp.StatusCode = StatusCodes.Status208AlreadyReported;
+                    Resp.Message = $"Menu already exists";
+                    Resp.Dup = true;
 
+                    return StatusCode(StatusCodes.Status208AlreadyReported, Resp);
                 }
                 if (String.IsNullOrEmpty(menus.Menu_Name))
                 {
-                    return StatusCode(StatusCodes.Status200OK, new { message = "Menu Can't be Blank Or Null", DUP = true });
+                    Resp.StatusCode = StatusCodes.Status404NotFound;
+                    Resp.Message = $"Menu  Can't be Blank Or Null";
 
+                    return StatusCode(StatusCodes.Status404NotFound, Resp);
                 }
 
-                _query = _dc.InsertOrUpdateEntity(menus, "Menu_Mst", Menu_Id, "Menu_Id");
-                return StatusCode(StatusCodes.Status200OK, new { message = "Menu Updated Successfully", DUP = false });
+                _query = _dc.InsertOrUpdateEntity(menus, "Menus_Mst", Menu_Id, "Menu_Id");
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = $"Menu Updated Successfully";
+                Resp.IsSuccess = true;
+
+                return StatusCode(StatusCodes.Status200OK, Resp);
 
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Error{ex.Message}");
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
             }
         }
 
@@ -153,25 +199,36 @@ namespace VehicleManagement.Controllers
 
             try
             {
-                var roleExists = $"SELECT COUNT(*) FROM Menu_Mst WHERE Menu_Id = {id} ";
-                int result = Convert.ToInt32(_connection.ExecuteScalar(roleExists));
+                var MenuExists = $"SELECT COUNT(*) FROM Menus_Mst WHERE Menu_Id = {id} ";
+                int result = Convert.ToInt32(_connection.ExecuteScalar(MenuExists));
 
 
                 if (result == 0)
                 {
-                    return StatusCode(StatusCodes.Status404NotFound, new { message = "Menu ID does not exist.", DUP = false });
+                    Resp.StatusCode = StatusCodes.Status404NotFound;
+                    Resp.Message = "Menu ID does not exist.";
+
+                    return StatusCode(StatusCodes.Status404NotFound, Resp);
                 }
 
-                string deleteRoleQuery = $"Delete from Menu_Mst where Menu_Id='{id}'";
+                string deleteRoleQuery = $"Delete from Menus_Mst where Menu_Id='{id}'";
 
                 LkDataConnection.Connection.ExecuteNonQuery(deleteRoleQuery);
-                return StatusCode(StatusCodes.Status200OK, new { message = "Menu Deleted successfully" });
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = "Menu Deleted successfully";
+                Resp.IsSuccess = true;
+
+                return StatusCode(StatusCodes.Status200OK, Resp);
+
 
 
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Error{ex.Message}");
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
             }
         }
 

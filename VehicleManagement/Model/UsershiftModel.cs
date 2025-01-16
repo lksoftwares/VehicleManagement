@@ -12,10 +12,10 @@ namespace VehicleManagement.Model
         public string? Shift_Name { get; set; }
         [JsonPropertyName("startTime")]
 
-        public TimeSpan? Start_Time { get; set; }
+        public string? Start_Time { get; set; }
         [JsonPropertyName("endTime")]
 
-        public TimeSpan? End_Time { get; set; }
+        public string? End_Time { get; set; }
         [JsonPropertyName("graceTime")]
 
         public float? Grace_Time { get; set; }

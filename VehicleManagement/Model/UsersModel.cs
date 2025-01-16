@@ -39,6 +39,7 @@ namespace VehicleManagement.Model
 
         public int? Shift_Id { get; set; }
 
+        public string? Shift_Name { get; set; }
 
 
 

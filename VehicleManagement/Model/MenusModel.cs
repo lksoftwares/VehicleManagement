@@ -10,6 +10,9 @@ namespace VehicleManagement.Model
         [JsonPropertyName("menuName")]
 
         public string? Menu_Name { get; set; }
-        
+        [JsonPropertyName("parentId")]
+
+        public int? Parent_Id { get; set; }
+
     }
 }
