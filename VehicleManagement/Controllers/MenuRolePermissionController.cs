@@ -122,6 +122,80 @@ namespace VehicleManagement.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("AddMulMenuRolePermission")]
+        public IActionResult AddMulMenuRolePermission([FromBody] List<MenuRolePermissionModel> menuRolePermissions)
+        {
+            try
+            {
+                if (menuRolePermissions == null || menuRolePermissions.Count == 0)
+                {
+                    Resp.StatusCode = StatusCodes.Status400BadRequest;
+                    Resp.Message = "Data not found ....";
+                    return StatusCode(StatusCodes.Status400BadRequest, Resp);
+                }
+
+                foreach (var menuRolePermission in menuRolePermissions)
+                {
+                    if (menuRolePermission.Role_Id <= 0 ||
+                        menuRolePermission.MenuID <= 0 ||
+                        menuRolePermission.Permission_Id <= 0 )
+                    {
+                        Resp.StatusCode = StatusCodes.Status400BadRequest;
+                        Resp.Message = "Invalid Role_Id, MenuID or Permission_Id in one of the entries.";
+                        return StatusCode(StatusCodes.Status400BadRequest, Resp);
+                    }
+
+
+                    if (menuRolePermission.Role_Id == null)
+                    {
+                        Resp.StatusCode = StatusCodes.Status400BadRequest;
+                        Resp.Message = "RoleId Is Missing  In One Of The Entries. Please Provide RoleId ";
+                        return StatusCode(StatusCodes.Status400BadRequest, Resp);
+                    }
+
+                    if (menuRolePermission.MenuID == null)
+                    {
+                        Resp.StatusCode = StatusCodes.Status400BadRequest;
+                        Resp.Message = "MenuID Is Missing  In One Of The Entries Please Provide RoleId ";
+                        return StatusCode(StatusCodes.Status400BadRequest, Resp);
+                    }
+                    if (menuRolePermission.Permission_Id == null)
+                    {
+                        Resp.StatusCode = StatusCodes.Status400BadRequest;
+                        Resp.Message = "PermissionId Is Missing  In One Of The Entries Please Provide RoleId ";
+                        return StatusCode(StatusCodes.Status400BadRequest, Resp);
+                    }
+
+                }
+
+                foreach (var menuRolePermission in menuRolePermissions)
+                {
+                    string deleteQuery = $"DELETE FROM Menu_Role_Permission_Mst1 WHERE Role_Id = {menuRolePermission.Role_Id} AND MenuID = {menuRolePermission.MenuID} AND Permission_Id = {menuRolePermission.Permission_Id}";
+                    LkDataConnection.Connection.ExecuteNonQuery(deleteQuery);
+                }
+
+                foreach (var menuRolePermission in menuRolePermissions)
+                {
+                    _query = _dc.InsertOrUpdateEntity(menuRolePermission, "Menu_Role_Permission_Mst1", -1);
+                }
+
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = "Menu Role Permissions added successfully.";
+                Resp.IsSuccess = true;
+
+                return StatusCode(StatusCodes.Status200OK, Resp);
+
+            }
+            catch (Exception ex)
+            {
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
+
+            }
+        }
+
 
 
         [HttpPut]
@@ -150,6 +224,7 @@ namespace VehicleManagement.Controllers
                     return StatusCode(StatusCodes.Status404NotFound, Resp);
                 }
 
+
                 string deleteQuery = $"DELETE FROM Menu_Role_Permission_Mst WHERE Role_Id = {menuRolePermission.Role_Id} AND Menu_Id = {menuRolePermission.Menu_Id} AND RMP_Id != {id}";
 
                 LkDataConnection.Connection.ExecuteNonQuery(deleteQuery);
@@ -167,6 +242,7 @@ namespace VehicleManagement.Controllers
             catch (Exception ex)
             {
                 Resp.StatusCode = StatusCodes.Status500InternalServerError;
+
                 Resp.Message = ex.Message;
                 return StatusCode(StatusCodes.Status500InternalServerError, Resp);
             }
