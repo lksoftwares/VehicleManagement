@@ -115,5 +115,7 @@ namespace VehicleManagement.Classes
         public List<string> FieldValues { get; set; } 
         public DataTable DataTable { get; set; }
         public List<string> Levels { get; set; }
+
+
     }
 }

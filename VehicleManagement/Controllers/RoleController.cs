@@ -38,10 +38,11 @@ namespace VehicleManagement.Controllers
                 Console.WriteLine(query);
                 var connection = new LkDataConnection.Connection();
 
-                var result = connection.bindmethod(query);
+               // var result1 = connection.bindmethod(query);
+              //  var result = _connection.ExecuteQueryWithResult(query);
 
-
-                DataTable Table = result._DataTable;
+               // DataTable Table = result._DataTable;
+                DataTable Table= _connection.ExecuteQueryWithResult(query);
 
                 var RoleList = new List<RolesModel>();
 

@@ -11,6 +11,8 @@ namespace VehicleManagement.Model
         [JsonPropertyName("RoleId")]
         public int? Role_Id { get; set; }
         [JsonPropertyName("MenuId")]
+        public int? MenuID { get; set; }
+        [JsonPropertyName("Menu_Id")]
 
         public int? Menu_Id { get; set; }
         [JsonPropertyName("PermissionId")]
@@ -25,6 +27,8 @@ namespace VehicleManagement.Model
         [JsonPropertyName("PermissionType")]
 
         public string? Permission_Type { get; set; }
+        public List<int>? Menu_Ids { get; set; }
+        public List<int>? Permission_Ids { get; set; }
 
 
 

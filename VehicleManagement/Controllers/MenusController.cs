@@ -40,10 +40,11 @@ namespace VehicleManagement.Controllers
                 Console.WriteLine(query);
                 var connection = new LkDataConnection.Connection();
 
-                var result = connection.bindmethod(query);
+                //var result = connection.bindmethod(query);
 
 
-                DataTable Table = result._DataTable;
+                //DataTable Table = result._DataTable;
+                DataTable Table = _connection.ExecuteQueryWithResult(query);
 
                 var MenuList = new List<MenusModel>();
 
