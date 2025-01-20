@@ -16,11 +16,14 @@ namespace VehicleManagement.Controllers
         private readonly ConnectionClass _connection;
         LkDataConnection.DataAccess _dc = new LkDataConnection.DataAccess();
         LkDataConnection.SqlQueryResult _query = new LkDataConnection.SqlQueryResult();
-        public MenusController(ConnectionClass connection)
+        private readonly IWebHostEnvironment _hostingEnvironment;
+
+        public MenusController(ConnectionClass connection, IWebHostEnvironment hostingEnvironment )
         {
             _connection = connection;
             LkDataConnection.Connection.Connect();
             LkDataConnection.Connection.ConnectionStr = _connection.GetSqlConnection().ConnectionString;
+            _hostingEnvironment = hostingEnvironment;
 
         }
 
@@ -54,7 +57,12 @@ namespace VehicleManagement.Controllers
                     {
                         Menu_Id = Convert.ToInt32(row["Menu_Id"]),
                         Menu_Name = row["Menu_Name"].ToString(),
-                        Parent_Id = row["Parent_Id"] as int?
+                        Parent_Id = row["Parent_Id"] as int?,
+                        IconPath = row["IconPath"].ToString(),
+
+
+
+
                         // Parent_Id = Convert.ToInt32(row["Menu_Id"])
 
 
@@ -95,6 +103,8 @@ namespace VehicleManagement.Controllers
                     fields = new[] { "Menu_Name" },
                     values = new[] { menus.Menu_Name }
                 };
+
+               
                 bool isDuplicate = duplicacyChecker.CheckDuplicate(duplicacyParameter);
                 if (isDuplicate)
                 {

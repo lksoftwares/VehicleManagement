@@ -13,6 +13,11 @@ namespace VehicleManagement.Model
         [JsonPropertyName("parentId")]
 
         public int? Parent_Id { get; set; }
+        [JsonPropertyName("IconPath")]
+
+        public string? IconPath { get; set; }
+
+
 
     }
 }

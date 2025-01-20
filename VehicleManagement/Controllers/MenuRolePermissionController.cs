@@ -84,54 +84,54 @@ namespace VehicleManagement.Controllers
 
         }
 
+        //[HttpPost]
+        //[Route("AddMenuRolePermission")]
+
+        //public IActionResult AddMenuRolePermission([FromBody] MenuRolePermissionModel menuRolePermission)
+        //{
+        //    try
+        //    {
+        //        if (menuRolePermission == null ||
+        //            menuRolePermission.Role_Id <= 0 ||
+        //            menuRolePermission.MenuID <= 0 ||
+        //            menuRolePermission.Permission_Id <= 0)
+        //        {
+        //            Resp.StatusCode = StatusCodes.Status400BadRequest;
+        //            Resp.Message = "Invalid or missing data. Please provide valid Role_Id, Menu_Id, and Permission_Id.";
+        //            return StatusCode(StatusCodes.Status400BadRequest, Resp);
+        //        }
+
+        //        string deleteQuery = $"DELETE FROM Menu_Role_Permission_Mst1 WHERE Role_Id = {menuRolePermission.Role_Id} AND MenuID = {menuRolePermission.MenuID}";
+
+
+        //        LkDataConnection.Connection.ExecuteNonQuery(deleteQuery);
+
+        //        _query = _dc.InsertOrUpdateEntity(menuRolePermission, "Menu_Role_Permission_Mst1", -1);
+
+        //        Resp.StatusCode = StatusCodes.Status200OK;
+        //        Resp.Message = "Menu Role Permission Added successfully.";
+        //        Resp.IsSuccess = true;
+
+        //        return StatusCode(StatusCodes.Status200OK, Resp);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Resp.StatusCode = StatusCodes.Status500InternalServerError;
+        //        Resp.Message = ex.Message;
+        //        return StatusCode(StatusCodes.Status500InternalServerError, Resp);
+        //    }
+        //}
+
         [HttpPost]
         [Route("AddMenuRolePermission")]
-
-        public IActionResult AddMenuRolePermission([FromBody] MenuRolePermissionModel menuRolePermission)
-        {
-            try
-            {
-                if (menuRolePermission == null ||
-                    menuRolePermission.Role_Id <= 0 ||
-                    menuRolePermission.MenuID <= 0 ||
-                    menuRolePermission.Permission_Id <= 0)
-                {
-                    Resp.StatusCode = StatusCodes.Status400BadRequest;
-                    Resp.Message = "Invalid or missing data. Please provide valid Role_Id, Menu_Id, and Permission_Id.";
-                    return StatusCode(StatusCodes.Status400BadRequest, Resp);
-                }
-
-                string deleteQuery = $"DELETE FROM Menu_Role_Permission_Mst1 WHERE Role_Id = {menuRolePermission.Role_Id} AND MenuID = {menuRolePermission.MenuID}";
-
-
-                LkDataConnection.Connection.ExecuteNonQuery(deleteQuery);
-
-                _query = _dc.InsertOrUpdateEntity(menuRolePermission, "Menu_Role_Permission_Mst1", -1);
-
-                Resp.StatusCode = StatusCodes.Status200OK;
-                Resp.Message = "Menu Role Permission Added successfully.";
-                Resp.IsSuccess = true;
-
-                return StatusCode(StatusCodes.Status200OK, Resp);
-            }
-            catch (Exception ex)
-            {
-                Resp.StatusCode = StatusCodes.Status500InternalServerError;
-                Resp.Message = ex.Message;
-                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
-            }
-        }
-
-        [HttpPost]
-        [Route("AddMulMenuRolePermission")]
-        public IActionResult AddMulMenuRolePermission([FromBody] List<MenuRolePermissionModel> menuRolePermissions)
+        public IActionResult AddMenuRolePermission([FromBody] List<MenuRolePermissionModel> menuRolePermissions)
         {
             try
             {
                 if (menuRolePermissions == null || menuRolePermissions.Count == 0)
                 {
                     Resp.StatusCode = StatusCodes.Status400BadRequest;
-                    Resp.Message = "Data not found ....";
+                    Resp.Message = "Data not found   ....";
                     return StatusCode(StatusCodes.Status400BadRequest, Resp);
                 }
 

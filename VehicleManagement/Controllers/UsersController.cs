@@ -301,7 +301,7 @@ namespace VehicleManagement.Controllers
                         var imageUrl = $"http://192.168.1.64:7148/public/images/{imageName}";
 
                         Resp.StatusCode = StatusCodes.Status200OK;
-                        Resp.Message = "Profile Updated  successfully";
+                        Resp.Message = "Profile Fetched   successfully";
                         Resp.IsSuccess = true;
                         Resp.ApiResponse = new { ImageUrl = imageUrl} ;
 
