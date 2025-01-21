@@ -50,6 +50,7 @@ namespace VehicleManagement.Controllers
                 DataTable Table = _connection.ExecuteQueryWithResult(query);
 
                 var MenuList = new List<MenusModel>();
+                var MenuImgPath = "http://192.168.1.64:7248/public/Icons/";
 
                 foreach (DataRow row in Table.Rows)
                 {
@@ -58,7 +59,10 @@ namespace VehicleManagement.Controllers
                         Menu_Id = Convert.ToInt32(row["Menu_Id"]),
                         Menu_Name = row["Menu_Name"].ToString(),
                         Parent_Id = row["Parent_Id"] as int?,
-                        IconPath = row["IconPath"].ToString(),
+                   
+                        IconUrl = string.IsNullOrEmpty(row["IconPath"]?.ToString() )? null: MenuImgPath + row["IconPath"].ToString()
+
+                        // IconPath =  row["IconPath"] ,
 
 
 
@@ -88,11 +92,9 @@ namespace VehicleManagement.Controllers
             }
         }
 
-
         [HttpPost]
-
         [Route("AddMenu")]
-        public IActionResult AddMenu([FromBody] MenusModel menus)
+        public IActionResult AddMenu([FromForm] MenusModel menus)
         {
             try
             {
@@ -100,11 +102,11 @@ namespace VehicleManagement.Controllers
                 var duplicacyParameter = new CheckDuplicacyPerameter
                 {
                     tableName = "Menus_Mst",
+
                     fields = new[] { "Menu_Name" },
                     values = new[] { menus.Menu_Name }
                 };
 
-               
                 bool isDuplicate = duplicacyChecker.CheckDuplicate(duplicacyParameter);
                 if (isDuplicate)
                 {
@@ -113,22 +115,30 @@ namespace VehicleManagement.Controllers
                     Resp.Dup = true;
 
                     return StatusCode(StatusCodes.Status208AlreadyReported, Resp);
-
                 }
-                if (String.IsNullOrEmpty(menus.Menu_Name))
+
+                if (string.IsNullOrEmpty(menus.Menu_Name))
                 {
                     Resp.StatusCode = StatusCodes.Status404NotFound;
-                    Resp.Message = $"Menu  Can't be Blank Or Null";
+                    Resp.Message = $"Menu name can't be blank or null.";
 
                     return StatusCode(StatusCodes.Status404NotFound, Resp);
                 }
-                _query = _dc.InsertOrUpdateEntity(menus, "Menus_Mst", -1);
+
+              
+        string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Public", "Icons");
+
+
+
+
+        _query = _dc.InsertOrUpdateEntity(menus, "Menus_Mst", -1, imgFolderpath:folderPath);
+
+
                 Resp.StatusCode = StatusCodes.Status200OK;
-                Resp.Message = $"Menu Added Successfully";
+                Resp.Message = $"Menu added successfully";
                 Resp.IsSuccess = true;
 
                 return StatusCode(StatusCodes.Status200OK, Resp);
-
             }
             catch (Exception ex)
             {
@@ -139,10 +149,72 @@ namespace VehicleManagement.Controllers
             }
         }
 
+
+        //[HttpPost]
+
+        //[Route("AddMenu")]
+        //public IActionResult AddMenu([FromForm] MenusModel menus)
+        //{
+        //    try
+        //    {
+        //        var duplicacyChecker = new CheckDuplicacy(_connection);
+        //        var duplicacyParameter = new CheckDuplicacyPerameter
+        //        {
+        //            tableName = "Menus_Mst",
+        //            fields = new[] { "Menu_Name" },
+        //            values = new[] { menus.Menu_Name }
+        //        };
+
+        //        //string wwwRootPath = _hostingEnvironment.WebRootPath;
+
+
+        //      //     string imagePath = Path.Combine(wwwRootPath, "Public/Icons", menus.IconFile.Name.ToString());
+        //   //     menus.IconPath  = menus.IconFile.Name.ToString();
+
+
+        //        bool isDuplicate = duplicacyChecker.CheckDuplicate(duplicacyParameter);
+        //        if (isDuplicate)
+        //        {
+        //            Resp.StatusCode = StatusCodes.Status208AlreadyReported;
+        //            Resp.Message = $"Menu already exists";
+        //            Resp.Dup = true;
+
+        //            return StatusCode(StatusCodes.Status208AlreadyReported, Resp);
+
+        //        }
+        //        if (String.IsNullOrEmpty(menus.Menu_Name))
+        //        {
+        //            Resp.StatusCode = StatusCodes.Status404NotFound;
+        //            Resp.Message = $"Menu  Can't be Blank Or Null";
+
+        //            return StatusCode(StatusCodes.Status404NotFound, Resp);
+        //        }
+        //        _query = _dc.InsertOrUpdateEntity(menus, "Menus_Mst", -1, "wwwroot/Public/Icons");
+        //        Resp.StatusCode = StatusCodes.Status200OK;
+        //        Resp.Message = $"Menu Added Successfully";
+        //        Resp.IsSuccess = true;
+
+        //        return StatusCode(StatusCodes.Status200OK, Resp);
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Resp.StatusCode = StatusCodes.Status500InternalServerError;
+        //        Resp.Message = ex.Message;
+
+        //        return StatusCode(StatusCodes.Status500InternalServerError, Resp);
+        //    }
+        //}
+
+
+
+
+
+
         [HttpPut]
         [Route("updateMenu/{Menu_Id}")]
 
-        public IActionResult updateMenu(int Menu_Id, [FromBody] MenusModel menus)
+        public IActionResult updateMenu(int Menu_Id, [FromForm] MenusModel menus)
         {
             try
             {
@@ -184,8 +256,8 @@ namespace VehicleManagement.Controllers
 
                     return StatusCode(StatusCodes.Status404NotFound, Resp);
                 }
-
-                _query = _dc.InsertOrUpdateEntity(menus, "Menus_Mst", Menu_Id, "Menu_Id");
+                string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Public", "Icons");
+                _query = _dc.InsertOrUpdateEntity(menus, "Menus_Mst", Menu_Id, "Menu_Id", folderPath);
                 Resp.StatusCode = StatusCodes.Status200OK;
                 Resp.Message = $"Menu Updated Successfully";
                 Resp.IsSuccess = true;
@@ -201,6 +273,7 @@ namespace VehicleManagement.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, Resp);
             }
         }
+
 
         [HttpDelete]
         [Route("deleteMenu/{id}")]

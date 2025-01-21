@@ -15,7 +15,9 @@ namespace VehicleManagement.Model
         public int? Parent_Id { get; set; }
         [JsonPropertyName("IconPath")]
 
-        public string? IconPath { get; set; }
+        public IFormFile? IconPath { get; set; }
+        public string? IconUrl { get; set; }
+
 
 
 
