@@ -103,9 +103,11 @@ namespace VehicleManagement.Controllers
                     return StatusCode(StatusCodes.Status404NotFound, Resp);
                 }
 
+
                 //Usershift.Start_Time = new TimeSpan(Usershift.Start_Time.Value.Hours, Usershift.End_Time.Value.Minutes, 0);
 
                 //Usershift.End_Time = new TimeSpan(Usershift.End_Time.Value.Hours, Usershift.End_Time.Value.Minutes, 0);
+
 
                 _query = _dc.InsertOrUpdateEntity(Usershift, "User_Shift_Mst", -1);
                 Resp.StatusCode = StatusCodes.Status200OK;

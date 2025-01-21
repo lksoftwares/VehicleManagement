@@ -21,6 +21,7 @@ namespace VehicleManagement.Classes
 
             string joinQuery = "";
 
+
             for (int i = 2; i <= createMenuQueryFeilds.Levels; i++)
             {
                 baseQuery += $", t{i}.IconPath AS icon{i}, t{i}.Order_No AS levOrd{i}, t{i}.MenuName AS Level{i} ";
@@ -70,6 +71,8 @@ namespace VehicleManagement.Classes
                         PermissionType = row["Permission_Type"]?.ToString()
                     }).Distinct().ToList(),
                     //  SubMenus = BuildSubMenu(subGroup, createMenuQueryFeilds.startLevel + 1, createMenuQueryFeilds.ImagePath)
+                    
+
                     SubMenus = BuildSubMenu(new CreateMenuQueryFeilds
                     {
                         Levels = createMenuQueryFeilds.Levels,
@@ -78,8 +81,8 @@ namespace VehicleManagement.Classes
                         startLevel = createMenuQueryFeilds.startLevel + 1,
                         ImagePath = createMenuQueryFeilds.ImagePath
                     })
-
                 }).ToList<object>();
+           
         }
 
 

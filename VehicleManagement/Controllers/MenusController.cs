@@ -50,7 +50,7 @@ namespace VehicleManagement.Controllers
                 DataTable Table = _connection.ExecuteQueryWithResult(query);
 
                 var MenuList = new List<MenusModel>();
-                var MenuImgPath = "http://192.168.1.64:7248/public/Icons/";
+                var MenuImgPath = "http://192.168.1.64:7148/public/Icons/";
 
                 foreach (DataRow row in Table.Rows)
                 {
@@ -249,13 +249,13 @@ namespace VehicleManagement.Controllers
 
                     return StatusCode(StatusCodes.Status208AlreadyReported, Resp);
                 }
-                if (String.IsNullOrEmpty(menus.Menu_Name))
-                {
-                    Resp.StatusCode = StatusCodes.Status404NotFound;
-                    Resp.Message = $"Menu  Can't be Blank Or Null";
+                //if (String.IsNullOrEmpty(menus.Menu_Name))
+                //{
+                //    Resp.StatusCode = StatusCodes.Status404NotFound;
+                //    Resp.Message = $"Menu  Can't be Blank Or Null";
 
-                    return StatusCode(StatusCodes.Status404NotFound, Resp);
-                }
+                //    return StatusCode(StatusCodes.Status404NotFound, Resp);
+                //}
                 string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Public", "Icons");
                 _query = _dc.InsertOrUpdateEntity(menus, "Menus_Mst", Menu_Id, "Menu_Id", folderPath);
                 Resp.StatusCode = StatusCodes.Status200OK;
