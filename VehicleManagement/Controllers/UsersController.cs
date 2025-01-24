@@ -177,6 +177,7 @@ namespace VehicleManagement.Controllers
                     User_Id = userData["User_Id"],
                     Role_Id = userData["Role_Id"],
                     Role_Name = userData["Role_Name"],
+                    User_Name = userData["User_Name"]
                     //    Menus = userData["Menu_Name"],
                  //   Menus = menuPermissions
                     //  Permission_type = userData["Permission_Type"],

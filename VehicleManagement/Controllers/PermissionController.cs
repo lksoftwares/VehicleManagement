@@ -31,137 +31,57 @@ namespace VehicleManagement.Controllers
 
 
 
-        //[AllowAnonymous]
-        //[HttpGet]
-        //[Route("GetRoleBasedMenus/{Role_Id?}")]
-        //public IActionResult GetRoleBasedMenus(int? Role_Id)
-        //{
-        //    try
-        //    {
-        //        var queryFields = new CreateMenuQueryFeilds
-        //        {
-        //            Levels = 7, 
-        //            RoleId = Role_Id ?? 0, 
-        //            startLevel = 1,
-        //            ImagePath = "http://192.168.1.64:7248/public/Icons/"
-        //        };
-
-        //        CreateMenuQuery createMenuQuery = new CreateMenuQuery();
-        //        string query = createMenuQuery.CreateMenusQuery(queryFields);
-
-        //        var connection = new LkDataConnection.Connection();
-        //        var result = connection.bindmethod(query);
-
-        //        if (result == null || result._DataTable == null || result._DataTable.Rows.Count == 0)
-        //        {
-        //            Resp.StatusCode = StatusCodes.Status404NotFound;
-        //            Resp.Message = "No Menus Found";
-        //            return Ok(Resp);
-        //        }  
-
-        //        DataTable dataTable = result._DataTable;
-
-        //        var menus = dataTable.AsEnumerable()
-        //            .Where(row => row["Permission_Id"] != DBNull.Value) 
-        //            .GroupBy(row => row["Level1"]?.ToString()) 
-        //            .Select(lev1 => new
-        //            {
-        //                MenuName = lev1.Key,
-        //                Icon = string.IsNullOrEmpty(lev1.First()["Icon1"]?.ToString())
-        //                    ? null
-        //                    : queryFields.ImagePath + lev1.First()["Icon1"]?.ToString(),
-        //                Roles = lev1.Select(row => new
-        //                {
-        //                    RoleId = row["Role_Id"],
-        //                    RoleName = row["Role_Name"]?.ToString(),
-        //                    PermissionId = row["Permission_Id"] != DBNull.Value ? row["Permission_Id"] : null,
-        //                    PermissionType = row["Permission_Type"]?.ToString()
-        //                }).Distinct().ToList(),
-        //                SubMenus = createMenuQuery.BuildSubMenu(new CreateMenuQueryFeilds
-        //                {
-        //                    Levels = queryFields.Levels,
-        //                    RoleId = queryFields.RoleId,
-        //                    group = lev1,
-        //                    startLevel = 2, 
-        //                    ImagePath = queryFields.ImagePath
-        //                })
-        //            })
-        //            .ToList();
-
-        //        Resp.StatusCode = StatusCodes.Status200OK;
-        //        Resp.Message = "Fetched successfully";
-        //        Resp.ApiResponse = menus;
-        //        Resp.IsSuccess = true;
-        //        return Ok(Resp);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Resp.StatusCode = StatusCodes.Status500InternalServerError;
-        //        Resp.Message = ex.Message;
-        //        return StatusCode(StatusCodes.Status500InternalServerError, Resp);
-        //    }
-        //}
-
-
-
-
         [AllowAnonymous]
         [HttpGet]
         [Route("GetRoleBasedMenus/{Role_Id?}")]
-        public IActionResult GetRoleBasedMenuss(int? Role_Id)
+        public IActionResult GetRoleBasedMenus(int? Role_Id)
         {
             try
             {
+                var Count = @"WITH Menu AS
+(
+    SELECT 
+        Menu_Id,
+        Parent_Id,
+        1 AS Level
+    FROM 
+        Menus_Mst
+    WHERE 
+        Parent_Id IS NULL
 
-                string query = @"	SELECT     
-                t1.IconPath as icon1,
-                       t2.IconPath as icon2,
-                	t3.IconPath as icon3,
-                	t4.IconPath as icon4,
-                       t1.Order_No as levOrd1,
-                       t2.Order_No as levOrd2,
-                       t3.Order_No as levOrd3,
-                       t4.Order_No as levOrd4,
+    UNION ALL
 
-                           t1.Menu_Name AS Level1,     
-                           t2.Menu_Name AS Level2,  
-                           t3.Menu_Name AS Level3,       
-                           t4.Menu_Name AS Level4,   
-                           mrp.Permission_Id,    
-                           p.Permission_Type, 
-                           mrp.Role_Id, 
-                           r.Role_Name
-                       FROM Menus_Mst AS t1
-                       LEFT JOIN Menus_Mst AS t2 ON t2.Parent_Id = t1.Menu_Id
-                       LEFT JOIN Menus_Mst AS t3 ON t3.Parent_Id = t2.Menu_Id  
-                       LEFT JOIN Menus_Mst AS t4 ON t4.Parent_Id = t3.Menu_Id  
-                       JOIN Menu_Role_Permission_Mst AS mrp 
-                           ON t1.Menu_Id = mrp.Menu_Id 
-                           OR t2.Menu_Id = mrp.Menu_Id 
-                           OR t3.Menu_Id = mrp.Menu_Id 
-                           OR t4.Menu_Id = mrp.Menu_Id  
-                       JOIN Permission_Mst AS p ON mrp.Permission_Id = p.Permission_Id  
-                       JOIN Role_Mst AS r ON mrp.Role_Id = r.Role_Id ";
-
-                if (Role_Id == null || Role_Id != 0)
-                {
-                    query += $" WHERE r.Role_Id = {Role_Id} AND t1.Parent_Id IS NULL ";
-                }
-                query += " ORDER BY   t1.Order_No,     t2.Order_No,  t3.Order_No,    t4.Order_No ";
-                // var queryFields = new CreateMenuQueryFeilds
-                // {
-                //     Levels = 3,
-                //     RoleId = 2,
-                //     group = menus, 
-                //     startLevel = 1,
-                //     ImagePath = "http://example.com/images/"
-                // };
-
-                // CreateMenuQuery createMenuQuery = new CreateMenuQuery();
-                //string query = createMenuQuery.CreateMenusQueryFeilds(queryFields);
-
-
+    SELECT 
+        m.Menu_Id,
+        m.Parent_Id,
+        mh.Level + 1 AS Level
+    FROM 
+        Menus_Mst m
+    INNER JOIN 
+        Menu mh
+    ON 
+        m.Parent_Id = mh.Menu_Id
+)
+SELECT MAX(Level) AS Mx
+FROM Menu;";
                 var connection = new LkDataConnection.Connection();
+
+                var LevelCount = connection.bindmethod(Count);
+
+                DataTable Leveltbl = LevelCount._DataTable;
+
+                int maxLevel = Convert.ToInt32(Leveltbl.Rows[0]["Mx"]);
+                var queryFields = new PerameteFeilds
+                {
+                    Levels = maxLevel, 
+                    RoleId = Role_Id ?? 0, 
+                    ImagePath = "http://192.168.1.64:7248/public/Icons/"
+                };
+
+                CreateMenuQuery createMenuQuery = new CreateMenuQuery();
+                string query = createMenuQuery.CreateMenus_Mst(queryFields);
+
+             //   var connection = new LkDataConnection.Connection();
                 var result = connection.bindmethod(query);
 
                 if (result == null || result._DataTable == null || result._DataTable.Rows.Count == 0)
@@ -169,125 +89,36 @@ namespace VehicleManagement.Controllers
                     Resp.StatusCode = StatusCodes.Status404NotFound;
                     Resp.Message = "No Menus Found";
                     return Ok(Resp);
-                }
+                }  
 
                 DataTable dataTable = result._DataTable;
 
-
-                var ImagePath = "http://192.168.1.64:7248/public/Icons/";
-
                 var menus = dataTable.AsEnumerable()
-                    .Where(row => row["Permission_Id"] != DBNull.Value)
-                    .GroupBy(row => row["Level1"]?.ToString())
+                    .Where(row => row["Permission_Id"] != DBNull.Value) 
+                    .GroupBy(row => row["Level1"]?.ToString()) 
                     .Select(lev1 => new
                     {
                         MenuName = lev1.Key,
                         Icon = string.IsNullOrEmpty(lev1.First()["Icon1"]?.ToString())
-            ? null
-            : ImagePath + lev1.First()["Icon1"]?.ToString(),
-                        Roles = lev1
-                            .Where(row => row["Role_Id"] != DBNull.Value)
-                            .Select(row => new
-                            {
-                                levOrd1 = row["levOrd1"],
-                                RoleId = row["Role_Id"],
-                                RoleName = row["Role_Name"]?.ToString(),
-                                PermissionId = row["Permission_Id"] != DBNull.Value ? row["Permission_Id"] : null,
-                                PermissionType = row["Permission_Type"]?.ToString()
-                            })
-                            .Distinct()
-                            .ToList(),
-                        SubMenus = lev1
-                            .Where(row => !string.IsNullOrEmpty(row["Level2"]?.ToString()) && row["Permission_Id"] != DBNull.Value)
-                            .GroupBy(row => row["Level2"]?.ToString())
-                            .Select(lev2 => new
-                            {
-                                MenuName = lev2.Key,
-                                Icon = string.IsNullOrEmpty(lev2.First()["Icon2"]?.ToString())
-            ? null
-            : ImagePath + lev2.First()["Icon2"]?.ToString(),
-                                Roles = lev2
-                                    .Where(row => row["Role_Id"] != DBNull.Value)
-                                    .Select(row => new
-                                    {
-                                        levOrd2 = row["levOrd2"],
-                                        RoleId = row["Role_Id"],
-                                        RoleName = row["Role_Name"]?.ToString(),
-                                        PermissionId = row["Permission_Id"] != DBNull.Value ? row["Permission_Id"] : null,
-                                        PermissionType = row["Permission_Type"]?.ToString()
-                                    })
-                                    .Distinct()
-                                    .ToList(),
-                                SubMenus = lev2
-                                    .Where(row => !string.IsNullOrEmpty(row["Level3"]?.ToString()) && row["Permission_Id"] != DBNull.Value)
-                                    .GroupBy(row => row["Level3"]?.ToString())
-                                    .Select(lev3 => new
-                                    {
-                                        MenuName = lev3.Key,
-                                        Icon = string.IsNullOrEmpty(lev3.First()["Icon3"]?.ToString())
-            ? null
-            : ImagePath + lev3.First()["Icon3"]?.ToString(),
-                                        Roles = lev3
-                                            .Where(row => row["Role_Id"] != DBNull.Value)
-                                            .Select(row => new
-                                            {
-                                                levOrd3 = row["levOrd3"],
-                                                RoleId = row["Role_Id"],
-                                                RoleName = row["Role_Name"]?.ToString(),
-                                                PermissionId = row["Permission_Id"] != DBNull.Value ? row["Permission_Id"] : null,
-                                                PermissionType = row["Permission_Type"]?.ToString()
-                                            })
-                                            .Distinct()
-                                            .ToList(),
-                                        SubMenus = lev3
-                                            .Where(row => !string.IsNullOrEmpty(row["Level4"]?.ToString()) && row["Permission_Id"] != DBNull.Value)
-                                            .Select(row => new
-                                            {
-                                                MenuName = row["Level4"]?.ToString(),
-                                                Icon = string.IsNullOrEmpty(row["Icon4"]?.ToString())
-            ? null
-            : ImagePath + row["Icon4"]?.ToString(),
-                                                Roles = new List<object>
-                                                {
-                                                        new
-                                                        {
-                                                            levOrd4 = row["levOrd4"],
-                                                            RoleId = row["Role_Id"],
-                                                            RoleName = row["Role_Name"]?.ToString(),
-                                                            PermissionId = row["Permission_Id"] != DBNull.Value ? row["Permission_Id"] : null,
-                                                            PermissionType = row["Permission_Type"]?.ToString()
-                                                        }
-                                                }
-                                            })
-                                            .ToList()
-                                    })
-                                    .ToList()
-                            })
-                            .ToList()
+                            ? null
+                            : queryFields.ImagePath + lev1.First()["Icon1"]?.ToString(),
+                        Roles = lev1.Select(row => new
+                        {
+                            RoleId = row["Role_Id"],
+                            RoleName = row["Role_Name"]?.ToString(),
+                            PermissionId = row["Permission_Id"] != DBNull.Value ? row["Permission_Id"] : null,
+                            PermissionType = row["Permission_Type"]?.ToString()
+                        }).Distinct().ToList(),
+                        SubMenus = createMenuQuery.BuildSubMenu(new PerameteFeilds
+                        {
+                            Levels = queryFields.Levels,
+                            RoleId = queryFields.RoleId,
+                            group = lev1,
+                            startLevel = 2, 
+                            ImagePath = queryFields.ImagePath
+                        })
                     })
                     .ToList();
-
-                //var menus = dataTable.AsEnumerable()
-                //    .Where(row => row["Permission_Id"] != DBNull.Value)
-                //    .GroupBy(row => row["Level1"]?.ToString())
-                //    .Select(lev1 => new
-                //    {
-                //        MenuName = lev1.Key,
-                //        Icon = string.IsNullOrEmpty(lev1.First()["Icon1"]?.ToString())
-                //            ? null
-                //            : ImagePath + lev1.First()["Icon1"]?.ToString(),
-                //        Roles = lev1.Select(row => new
-                //        {
-                //            RoleId = row["Role_Id"],
-                //            RoleName = row["Role_Name"]?.ToString(),
-                //            PermissionId = row["Permission_Id"] != DBNull.Value ? row["Permission_Id"] : null,
-                //            PermissionType = row["Permission_Type"]?.ToString()
-                //        }).Distinct().ToList(),
-                //        SubMenus = createMenuQuery.BuildSubMenu(lev1,2,ImagePath)
-                //    })
-                //    .ToList();
-
-
 
                 Resp.StatusCode = StatusCodes.Status200OK;
                 Resp.Message = "Fetched successfully";
@@ -306,6 +137,207 @@ namespace VehicleManagement.Controllers
 
 
 
+        //[AllowAnonymous]
+        //[HttpGet]
+        //[Route("GetRoleBasedMenus/{Role_Id?}")]
+        //public IActionResult GetRoleBasedMenuss(int? Role_Id)
+        //{
+        //    try
+        //    {
+
+        //        string query = @"	SELECT     
+        //        t1.IconPath as icon1,
+        //               t2.IconPath as icon2,
+        //        	t3.IconPath as icon3,
+        //        	t4.IconPath as icon4,
+        //               t1.Order_No as levOrd1,
+        //               t2.Order_No as levOrd2,
+        //               t3.Order_No as levOrd3,
+        //               t4.Order_No as levOrd4,
+
+        //                   t1.Menu_Name AS Level1,     
+        //                   t2.Menu_Name AS Level2,  
+        //                   t3.Menu_Name AS Level3,       
+        //                   t4.Menu_Name AS Level4,   
+        //                   mrp.Permission_Id,    
+        //                   p.Permission_Type, 
+        //                   mrp.Role_Id, 
+        //                   r.Role_Name
+        //               FROM Menus_Mst AS t1
+        //               LEFT JOIN Menus_Mst AS t2 ON t2.Parent_Id = t1.Menu_Id
+        //               LEFT JOIN Menus_Mst AS t3 ON t3.Parent_Id = t2.Menu_Id  
+        //               LEFT JOIN Menus_Mst AS t4 ON t4.Parent_Id = t3.Menu_Id  
+        //               JOIN Menu_Role_Permission_Mst AS mrp 
+        //                   ON t1.Menu_Id = mrp.Menu_Id 
+        //                   OR t2.Menu_Id = mrp.Menu_Id 
+        //                   OR t3.Menu_Id = mrp.Menu_Id 
+        //                   OR t4.Menu_Id = mrp.Menu_Id  
+        //               JOIN Permission_Mst AS p ON mrp.Permission_Id = p.Permission_Id  
+        //               JOIN Role_Mst AS r ON mrp.Role_Id = r.Role_Id ";
+
+        //        if (Role_Id == null || Role_Id != 0)
+        //        {
+        //            query += $" WHERE r.Role_Id = {Role_Id} AND t1.Parent_Id IS NULL ";
+        //        }
+        //        query += " ORDER BY   t1.Order_No,     t2.Order_No,  t3.Order_No,    t4.Order_No ";
+        //        // var queryFields = new CreateMenuQueryFeilds
+        //        // {
+        //        //     Levels = 3,
+        //        //     RoleId = 2,
+        //        //     group = menus, 
+        //        //     startLevel = 1,
+        //        //     ImagePath = "http://example.com/images/"
+        //        // };
+
+        //        // CreateMenuQuery createMenuQuery = new CreateMenuQuery();
+        //        //string query = createMenuQuery.CreateMenusQueryFeilds(queryFields);
+
+
+        //        var connection = new LkDataConnection.Connection();
+        //        var result = connection.bindmethod(query);
+
+        //        if (result == null || result._DataTable == null || result._DataTable.Rows.Count == 0)
+        //        {
+        //            Resp.StatusCode = StatusCodes.Status404NotFound;
+        //            Resp.Message = "No Menus Found";
+        //            return Ok(Resp);
+        //        }
+
+        //        DataTable dataTable = result._DataTable;
+
+
+        //        var ImagePath = "http://192.168.1.64:7148/public/Icons/";
+
+        //        var menus = dataTable.AsEnumerable()
+        //            .Where(row => row["Permission_Id"] != DBNull.Value)
+        //            .GroupBy(row => row["Level1"]?.ToString())
+        //            .Select(lev1 => new
+        //            {
+        //                MenuName = lev1.Key,
+        //                Icon = string.IsNullOrEmpty(lev1.First()["Icon1"]?.ToString())
+        //    ? null
+        //    : ImagePath + lev1.First()["Icon1"]?.ToString(),
+        //                Roles = lev1
+        //                    .Where(row => row["Role_Id"] != DBNull.Value)
+        //                    .Select(row => new
+        //                    {
+        //                        levOrd1 = row["levOrd1"],
+        //                        RoleId = row["Role_Id"],
+        //                        RoleName = row["Role_Name"]?.ToString(),
+        //                        PermissionId = row["Permission_Id"] != DBNull.Value ? row["Permission_Id"] : null,
+        //                        PermissionType = row["Permission_Type"]?.ToString()
+        //                    })
+        //                    .Distinct()
+        //                    .ToList(),
+        //                SubMenus = lev1
+        //                    .Where(row => !string.IsNullOrEmpty(row["Level2"]?.ToString()) && row["Permission_Id"] != DBNull.Value)
+        //                    .GroupBy(row => row["Level2"]?.ToString())
+        //                    .Select(lev2 => new
+        //                    {
+        //                        MenuName = lev2.Key,
+        //                        Icon = string.IsNullOrEmpty(lev2.First()["Icon2"]?.ToString())
+        //    ? null
+        //    : ImagePath + lev2.First()["Icon2"]?.ToString(),
+        //                        Roles = lev2
+        //                            .Where(row => row["Role_Id"] != DBNull.Value)
+        //                            .Select(row => new
+        //                            {
+        //                                levOrd2 = row["levOrd2"],
+        //                                RoleId = row["Role_Id"],
+        //                                RoleName = row["Role_Name"]?.ToString(),
+        //                                PermissionId = row["Permission_Id"] != DBNull.Value ? row["Permission_Id"] : null,
+        //                                PermissionType = row["Permission_Type"]?.ToString()
+        //                            })
+        //                            .Distinct()
+        //                            .ToList(),
+        //                        SubMenus = lev2
+        //                            .Where(row => !string.IsNullOrEmpty(row["Level3"]?.ToString()) && row["Permission_Id"] != DBNull.Value)
+        //                            .GroupBy(row => row["Level3"]?.ToString())
+        //                            .Select(lev3 => new
+        //                            {
+        //                                MenuName = lev3.Key,
+        //                                Icon = string.IsNullOrEmpty(lev3.First()["Icon3"]?.ToString())
+        //    ? null
+        //    : ImagePath + lev3.First()["Icon3"]?.ToString(),
+        //                                Roles = lev3
+        //                                    .Where(row => row["Role_Id"] != DBNull.Value)
+        //                                    .Select(row => new
+        //                                    {
+        //                                        levOrd3 = row["levOrd3"],
+        //                                        RoleId = row["Role_Id"],
+        //                                        RoleName = row["Role_Name"]?.ToString(),
+        //                                        PermissionId = row["Permission_Id"] != DBNull.Value ? row["Permission_Id"] : null,
+        //                                        PermissionType = row["Permission_Type"]?.ToString()
+        //                                    })
+        //                                    .Distinct()
+        //                                    .ToList(),
+        //                                SubMenus = lev3
+        //                                    .Where(row => !string.IsNullOrEmpty(row["Level4"]?.ToString()) && row["Permission_Id"] != DBNull.Value)
+        //                                    .Select(row => new
+        //                                    {
+        //                                        MenuName = row["Level4"]?.ToString(),
+        //                                        Icon = string.IsNullOrEmpty(row["Icon4"]?.ToString())
+        //    ? null
+        //    : ImagePath + row["Icon4"]?.ToString(),
+        //                                        Roles = new List<object>
+        //                                        {
+        //                                                new
+        //                                                {
+        //                                                    levOrd4 = row["levOrd4"],
+        //                                                    RoleId = row["Role_Id"],
+        //                                                    RoleName = row["Role_Name"]?.ToString(),
+        //                                                    PermissionId = row["Permission_Id"] != DBNull.Value ? row["Permission_Id"] : null,
+        //                                                    PermissionType = row["Permission_Type"]?.ToString()
+        //                                                }
+        //                                        }
+        //                                    })
+        //                                    .ToList()
+        //                            })
+        //                            .ToList()
+        //                    })
+        //                    .ToList()
+        //            })
+        //            .ToList();
+
+        //        //var menus = dataTable.AsEnumerable()
+        //        //    .Where(row => row["Permission_Id"] != DBNull.Value)
+        //        //    .GroupBy(row => row["Level1"]?.ToString())
+        //        //    .Select(lev1 => new
+        //        //    {
+        //        //        MenuName = lev1.Key,
+        //        //        Icon = string.IsNullOrEmpty(lev1.First()["Icon1"]?.ToString())
+        //        //            ? null
+        //        //            : ImagePath + lev1.First()["Icon1"]?.ToString(),
+        //        //        Roles = lev1.Select(row => new
+        //        //        {
+        //        //            RoleId = row["Role_Id"],
+        //        //            RoleName = row["Role_Name"]?.ToString(),
+        //        //            PermissionId = row["Permission_Id"] != DBNull.Value ? row["Permission_Id"] : null,
+        //        //            PermissionType = row["Permission_Type"]?.ToString()
+        //        //        }).Distinct().ToList(),
+        //        //        SubMenus = createMenuQuery.BuildSubMenu(lev1,2,ImagePath)
+        //        //    })
+        //        //    .ToList();
+
+
+
+        //        Resp.StatusCode = StatusCodes.Status200OK;
+        //        Resp.Message = "Fetched successfully";
+        //        Resp.ApiResponse = menus;
+        //        Resp.IsSuccess = true;
+        //        return Ok(Resp);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Resp.StatusCode = StatusCodes.Status500InternalServerError;
+        //        Resp.Message = ex.Message;
+        //        return StatusCode(StatusCodes.Status500InternalServerError, Resp);
+        //    }
+        //}
+
+
+
+
 
         [AllowAnonymous]
         [HttpGet]
@@ -314,16 +346,24 @@ namespace VehicleManagement.Controllers
         {
             try
             {
+                var Count = "WITH Menu AS\r\n(\r\n    SELECT \r\n        MenuID,\r\n        ParentID,\r\n        1 AS Level\r\n    FROM \r\n        Menus    WHERE         ParentID IS NULL\r\n\r\n    UNION ALL\r\n\r\n    SELECT \r\n        m.MenuID,\r\n        m.ParentID,\r\n        mh.Level + 1 AS Level   FROM \r\n        Menus m   INNER JOIN \r\n        Menu mh\r\n    ON \r\n        m.ParentID = mh.MenuID ) SELECT MAX(Level) AS Mx FROM Menu;";
+                var connection = new LkDataConnection.Connection();
+
+                var LevelCount = connection.bindmethod(Count);
+
+                DataTable Leveltbl = LevelCount._DataTable;
+
+                int maxLevel = Convert.ToInt32(Leveltbl.Rows[0]["Mx"]);
                 PerameteFeilds perameteFeilds = new PerameteFeilds
                 {
-                    Levels = 11,
+                    Levels = maxLevel,
                     RoleId = Role_Id ?? 0,
-                    startLevel = 1,
-                    ImagePath = "http://192.168.1.64:7248/public/Icons/"
+                  //  startLevel = 1,
+                    ImagePath = "http://192.168.1.64:7148/public/Icons/"
                 };
                 CreateQueryWithPermissions createQueryWithPermissions = new CreateQueryWithPermissions();
                 string query = createQueryWithPermissions.CreateQuery(perameteFeilds);
-                var connection = new LkDataConnection.Connection();
+               // var connection = new LkDataConnection.Connection();
                 var result = connection.bindmethod(query);
                 if (result == null || result._DataTable == null || result._DataTable.Rows.Count == 0)
                 {
@@ -378,60 +418,60 @@ namespace VehicleManagement.Controllers
         }
 
 
-    
 
 
 
 
-        //[HttpGet]
 
-        //[Route("GetAllPermission")]
-        //public IActionResult GetAllPermission()
-        //{
-        //    try
-        //    {
-        //        string query = $"select * from Permission_Mst ";
-        //        Console.WriteLine(query);
-        //        var connection = new LkDataConnection.Connection();
+        [HttpGet]
 
-        //        //var result = connection.bindmethod(query);
+        [Route("GetAllPermission")]
+        public IActionResult GetAllPermission()
+        {
+            try
+            {
+                string query = $"select * from Permission_Mst ";
+                Console.WriteLine(query);
+                var connection = new LkDataConnection.Connection();
 
-
-        //        //DataTable Table = result._DataTable;
-        //        DataTable Table = _connection.ExecuteQueryWithResult(query);
+                //var result = connection.bindmethod(query);
 
 
-        //        var PermissionList = new List<PermissionModel>();
-
-        //        foreach (DataRow row in Table.Rows)
-        //        {
-        //            PermissionList.Add(new PermissionModel
-        //            {
-        //                Permission_Id = Convert.ToInt32(row["Permission_Id"]),
-
-        //                Permission_Type = row["Permission_Type"].ToString()
+                //DataTable Table = result._DataTable;
+                DataTable Table = _connection.ExecuteQueryWithResult(query);
 
 
-        //            });
-        //        }
-        //        Resp.StatusCode = StatusCodes.Status200OK;
-        //        Resp.Message = $"Data fetched successfully ";
-        //        Resp.ApiResponse = PermissionList;
-        //        Resp.IsSuccess = true;
+                var PermissionList = new List<PermissionModel>();
 
-        //        return Ok(Resp);
+                foreach (DataRow row in Table.Rows)
+                {
+                    PermissionList.Add(new PermissionModel
+                    {
+                        Permission_Id = Convert.ToInt32(row["Permission_Id"]),
+
+                        Permission_Type = row["Permission_Type"].ToString()
+
+
+                    });
+                }
+                Resp.StatusCode = StatusCodes.Status200OK;
+                Resp.Message = $"Data fetched successfully ";
+                Resp.ApiResponse = PermissionList;
+                Resp.IsSuccess = true;
+
+                return Ok(Resp);
 
 
 
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Resp.StatusCode = StatusCodes.Status500InternalServerError;
-        //        Resp.Message = ex.Message;
+            }
+            catch (Exception ex)
+            {
+                Resp.StatusCode = StatusCodes.Status500InternalServerError;
+                Resp.Message = ex.Message;
 
-        //        return StatusCode(StatusCodes.Status500InternalServerError, Resp);
-        //    }
-        //}
+                return StatusCode(StatusCodes.Status500InternalServerError, Resp);
+            }
+        }
 
 
 
@@ -554,6 +594,8 @@ namespace VehicleManagement.Controllers
             }
         }
 
+
+
         [AllowAnonymous]
         [HttpGet]
         [Route("GetAllMenuWithPermissionsTest/{Role_Id?}")]
@@ -563,18 +605,28 @@ namespace VehicleManagement.Controllers
             {
                 try
                 {
-                    var queryFields = new CreateMenuQueryFeilds
+
+
+                    var Count = "WITH Menu AS\r\n(\r\n    SELECT \r\n        MenuID,\r\n        ParentID,\r\n        1 AS Level\r\n    FROM \r\n        Menus    WHERE         ParentID IS NULL\r\n\r\n    UNION ALL\r\n\r\n    SELECT \r\n        m.MenuID,\r\n        m.ParentID,\r\n        mh.Level + 1 AS Level   FROM \r\n        Menus m   INNER JOIN \r\n        Menu mh\r\n    ON \r\n        m.ParentID = mh.MenuID ) SELECT MAX(Level) AS Mx FROM Menu;";
+                    var connection = new LkDataConnection.Connection();
+
+                    var LevelCount = connection.bindmethod(Count);
+
+                    DataTable Leveltbl = LevelCount._DataTable;
+
+                  int  maxLevel = Convert.ToInt32(Leveltbl.Rows[0]["Mx"]);
+
+                    var queryFields = new PerameteFeilds
                     {
-                        Levels = 12,
+                        Levels = Convert.ToInt32(maxLevel),
                         RoleId = Role_Id ?? 0,
                        
                         ImagePath = "http://192.168.1.64:7148/public/Icons/"
                     };
 
-                    CreateMenuQuery createMenuQuery = new CreateMenuQuery();
+                    CreateQueryWithPermissions createMenuQuery = new CreateQueryWithPermissions();
                     string query = createMenuQuery.CreateMenusQuery(queryFields);
 
-                    var connection = new LkDataConnection.Connection();
                     var result = connection.bindmethod(query);
 
                     if (result == null || result._DataTable == null || result._DataTable.Rows.Count == 0)
@@ -591,6 +643,7 @@ namespace VehicleManagement.Controllers
                         .GroupBy(row => row["Level1"]?.ToString())
                         .Select(lev1 => new
                         {
+                            MenuID = lev1.FirstOrDefault()?["levMenuId1"],
                             MenuName = lev1.Key,
                             Icon = string.IsNullOrEmpty(lev1.First()["Icon1"]?.ToString())
                                 ? null
@@ -602,12 +655,12 @@ namespace VehicleManagement.Controllers
                                 PermissionId = row["Permission_Id"] != DBNull.Value ? row["Permission_Id"] : null,
                                 PermissionType = row["Permission_Type"]?.ToString()
                             }).Distinct().ToList(),
-                            SubMenus = createMenuQuery.BuildSubMenu(new CreateMenuQueryFeilds
+                            SubMenus = createMenuQuery.BuildSubMenu(new PerameteFeilds
                             {
                                 Levels = queryFields.Levels,
                                 RoleId = queryFields.RoleId,
                                 group = lev1,
-                                startLevel = 2,
+                                startLevel=2,
                                 ImagePath = queryFields.ImagePath
                             })
                         })

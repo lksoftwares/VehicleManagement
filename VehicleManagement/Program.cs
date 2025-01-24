@@ -57,7 +57,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
+SQLVersionClas sQLVersionClas = new SQLVersionClas();
+sQLVersionClas.GetSqlVersion();
 
 if (app.Environment.IsDevelopment())
 {
