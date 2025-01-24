@@ -39,31 +39,31 @@ namespace VehicleManagement.Controllers
             try
             {
                 var Count = @"WITH Menu AS
-(
-    SELECT 
-        Menu_Id,
-        Parent_Id,
-        1 AS Level
-    FROM 
-        Menus_Mst
-    WHERE 
-        Parent_Id IS NULL
+        (
+            SELECT 
+                Menu_Id,
+                Parent_Id,
+                1 AS Level
+            FROM 
+                Menus_Mst
+            WHERE 
+                Parent_Id IS NULL
 
-    UNION ALL
+            UNION ALL
 
-    SELECT 
-        m.Menu_Id,
-        m.Parent_Id,
-        mh.Level + 1 AS Level
-    FROM 
-        Menus_Mst m
-    INNER JOIN 
-        Menu mh
-    ON 
-        m.Parent_Id = mh.Menu_Id
-)
-SELECT MAX(Level) AS Mx
-FROM Menu;";
+            SELECT 
+                m.Menu_Id,
+                m.Parent_Id,
+                mh.Level + 1 AS Level
+            FROM 
+                Menus_Mst m
+            INNER JOIN 
+                Menu mh
+            ON 
+                m.Parent_Id = mh.Menu_Id
+        )
+        SELECT MAX(Level) AS Mx
+        FROM Menu;";
                 var connection = new LkDataConnection.Connection();
 
                 var LevelCount = connection.bindmethod(Count);
@@ -73,15 +73,14 @@ FROM Menu;";
                 int maxLevel = Convert.ToInt32(Leveltbl.Rows[0]["Mx"]);
                 var queryFields = new PerameteFeilds
                 {
-                    Levels = maxLevel, 
-                    RoleId = Role_Id ?? 0, 
-                    ImagePath = "http://192.168.1.64:7248/public/Icons/"
+                    Levels = maxLevel,
+                    RoleId = Role_Id ?? 0,
+                    ImagePath = "http://192.168.1.64:7148/public/Icons/"
                 };
-
-                CreateMenuQuery createMenuQuery = new CreateMenuQuery();
+                CreateQueryWithPermissions createMenuQuery = new CreateQueryWithPermissions();
                 string query = createMenuQuery.CreateMenus_Mst(queryFields);
 
-             //   var connection = new LkDataConnection.Connection();
+                //   var connection = new LkDataConnection.Connection();
                 var result = connection.bindmethod(query);
 
                 if (result == null || result._DataTable == null || result._DataTable.Rows.Count == 0)
@@ -89,13 +88,13 @@ FROM Menu;";
                     Resp.StatusCode = StatusCodes.Status404NotFound;
                     Resp.Message = "No Menus Found";
                     return Ok(Resp);
-                }  
+                }
 
                 DataTable dataTable = result._DataTable;
 
                 var menus = dataTable.AsEnumerable()
-                    .Where(row => row["Permission_Id"] != DBNull.Value) 
-                    .GroupBy(row => row["Level1"]?.ToString()) 
+                    .Where(row => row["Permission_Id"] != DBNull.Value)
+                    .GroupBy(row => row["Level1"]?.ToString())
                     .Select(lev1 => new
                     {
                         MenuName = lev1.Key,
@@ -114,7 +113,7 @@ FROM Menu;";
                             Levels = queryFields.Levels,
                             RoleId = queryFields.RoleId,
                             group = lev1,
-                            startLevel = 2, 
+                            startLevel = 2,
                             ImagePath = queryFields.ImagePath
                         })
                     })

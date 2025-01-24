@@ -59,8 +59,8 @@ namespace VehicleManagement.Controllers
                         Menu_Id = Convert.ToInt32(row["Menu_Id"]),
                         Menu_Name = row["Menu_Name"].ToString(),
                         Parent_Id = row["Parent_Id"] as int?,
-                   
-                        IconUrl = string.IsNullOrEmpty(row["IconPath"]?.ToString() )? null: MenuImgPath + row["IconPath"].ToString()
+
+                        IconUrl = string.IsNullOrEmpty(row["IconPath"]?.ToString()) ? null : MenuImgPath + row["IconPath"].ToString()
 
                         // IconPath =  row["IconPath"] ,
 

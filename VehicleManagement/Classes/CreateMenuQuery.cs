@@ -6,52 +6,7 @@ namespace VehicleManagement.Classes
 {
     public class CreateMenuQuery
     {
-        public string CreateMenus_Mst(PerameteFeilds createMenuQueryFeilds)
-        {
-            var baseQuery = @"
-        SELECT     
-            t1.IconPath AS icon1,
-            t1.Order_No AS levOrd1,
-            t1.Menu_Name AS Level1,
-		    t1.Menu_Id AS levMenuId1,
-
-            mrp.Permission_Id,
-            p.Permission_Type,
-            mrp.Role_Id,
-            r.Role_Name ";
-
-            string joinQuery = "";
-
-
-            for (int i = 2; i <= createMenuQueryFeilds.Levels; i++)
-            {
-                baseQuery += $", t{i}.IconPath AS icon{i}, t{i}.Order_No AS levOrd{i}, t{i}.Menu_Name AS Level{i}, t{i}.Menu_Id AS levMenuId{i} ";
-                joinQuery += $" LEFT JOIN Menus_Mst AS t{i} ON t{i}.Parent_Id = t{i - 1}.Menu_Id ";
-            }
-
-            var query = @$"
-        {baseQuery}
-        FROM Menus_Mst AS t1
-        {joinQuery}
-        JOIN Menu_Role_Permission_Mst AS mrp 
-            ON ";
-
-            query += string.Join(" OR ", Enumerable.Range(1, createMenuQueryFeilds.Levels).Select(i => $"t{i}.Menu_Id = mrp.Menu_Id"));
-
-            query += @"
-        JOIN Permission_Mst AS p ON mrp.Permission_Id = p.Permission_Id
-        JOIN Role_Mst AS r ON mrp.Role_Id = r.Role_Id ";
-
-            if (createMenuQueryFeilds.RoleId != null && createMenuQueryFeilds.RoleId != 0)
-            {
-                query += $" WHERE r.Role_Id = {createMenuQueryFeilds.RoleId}   AND t1.Parent_Id IS NULL";
-            }
-
-            query += " ORDER BY " + string.Join(", ", Enumerable.Range(1, createMenuQueryFeilds.Levels).Select(i => $"t{i}.Order_No"));
-
-            return query;
-        }
-
+      
         public string CreateMenusQuery(PerameteFeilds createMenuQueryFeilds)
         {
             var baseQuery = @"
