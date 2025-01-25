@@ -45,7 +45,8 @@ namespace VehicleManagement.Controllers
                 DataTable Table= _connection.ExecuteQueryWithResult(query);
 
                 var RoleList = new List<RolesModel>();
-
+               helloclass helloclass = new helloclass();
+                string heyy = helloclass.hello();
                 foreach (DataRow row in Table.Rows)
                 {
                     RoleList.Add(new RolesModel

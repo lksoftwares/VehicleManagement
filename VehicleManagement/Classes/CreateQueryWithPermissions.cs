@@ -102,6 +102,7 @@ namespace VehicleManagement.Classes
         {
             var baseQuery = @"
         SELECT
+            t1.IconPath AS icon1,
             r.Role_Id,
             r.Role_Name,
             mrp.Permission_Id,
@@ -112,6 +113,7 @@ namespace VehicleManagement.Classes
             for (int i = 1; i <= perameteFeilds.Levels; i++)
             {
                 baseQuery += $@",
+t{i}.IconPath AS icon{i},
             t{i}.MenuID AS levMenuId{i},
             t{i}.Order_No AS levOrd{i},
             t{i}.MenuName AS Level{i}";
@@ -140,6 +142,48 @@ namespace VehicleManagement.Classes
         }
 
 
+        public string LatestBlankCreateQuery(PerameteFeilds perameteFeilds)
+        {
+            var baseQuery = @"
+        SELECT
+            t1.IconPath AS icon1,
+            r.Role_Id,
+            r.Role_Name,
+            mrp.Permission_Id,
+            p.Permission_Type";
+
+            string joinQuery = "";
+
+            for (int i = 1; i <= perameteFeilds.Levels; i++)
+            {
+                baseQuery += $@",
+t{i}.IconPath AS icon{i},
+            t{i}.Menu_Id AS levMenuId{i},
+            t{i}.Order_No AS levOrd{i},
+            t{i}.Menu_Name AS Level{i}";
+
+                if (i > 1)
+                {
+                    joinQuery += $@"
+            LEFT JOIN Menus_Mst AS t{i} ON t{i}.Parent_id = t{i - 1}.Menu_Id";
+                }
+            }
+
+            var query = @$"
+        {baseQuery}
+        FROM Menus_Mst AS t1
+        {joinQuery}
+        LEFT JOIN Menu_Role_Permission_Mst AS mrp
+            ON ({string.Join(" OR ", Enumerable.Range(1, perameteFeilds.Levels).Select(i => $"t{i}.Menu_Id = mrp.Menu_Id"))})
+            AND (mrp.Role_Id = {perameteFeilds.RoleId} OR mrp.Role_Id IS NULL)
+        LEFT JOIN Permission_Mst AS p ON mrp.Permission_Id = p.Permission_Id
+        LEFT JOIN Role_Mst AS r ON mrp.Role_Id = r.Role_Id
+        WHERE t1.Parent_Id IS NULL
+        ORDER BY {string.Join(", ", Enumerable.Range(1, perameteFeilds.Levels).Select(i => $"t{i}.Order_No"))};";
+
+            return query;
+
+        }
 
         public List<object> BuildSubMenu(PerameteFeilds createMenuQueryFeilds)
         {
@@ -151,9 +195,9 @@ namespace VehicleManagement.Classes
                 .Select(levGroup => new
                 {
                     MenuID = levGroup.FirstOrDefault()?[$"levMenuId{createMenuQueryFeilds.startLevel}"],
-                    Icon = string.IsNullOrEmpty(levGroup.First()[$"Icon{createMenuQueryFeilds.startLevel}"]?.ToString())
+                    Icon = string.IsNullOrEmpty(levGroup.First()[$"icon{createMenuQueryFeilds.startLevel}"]?.ToString())
                         ? null
-                        : createMenuQueryFeilds.ImagePath + levGroup.First()[$"Icon{createMenuQueryFeilds.startLevel}"]?.ToString(),
+                        : createMenuQueryFeilds.ImagePath + levGroup.First()[$"icon{createMenuQueryFeilds.startLevel}"]?.ToString(),
                     MenuName = levGroup.Key,
                     Roles = levGroup
                         .Where(row => row["Role_Id"] != DBNull.Value || row["Permission_Id"] != DBNull.Value)
@@ -186,6 +230,7 @@ namespace VehicleManagement.Classes
             public IGrouping<string, DataRow> group { get; set; }
             public int startLevel { get; set; }
             public string ImagePath { get; set; }
+            //public IGrouping<string, Dictionary<string, object>> group { get; set; } 
 
         }
 

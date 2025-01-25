@@ -74,6 +74,7 @@ namespace VehicleManagement.Classes
                         PermissionId = row["Permission_Id"] != DBNull.Value ? row["Permission_Id"] : null,
                         PermissionType = row["Permission_Type"]?.ToString()
                     }).Distinct().ToList(),
+
                     //  SubMenus = BuildSubMenu(subGroup, createMenuQueryFeilds.startLevel + 1, createMenuQueryFeilds.ImagePath)
 
 

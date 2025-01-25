@@ -138,7 +138,7 @@ namespace VehicleManagement.Controllers
                 foreach (var menuRolePermission in menuRolePermissions)
                 {
                     if (menuRolePermission.Role_Id <= 0 ||
-                        menuRolePermission.MenuID <= 0 ||
+                        menuRolePermission.Menu_Id <= 0 ||
                         menuRolePermission.Permission_Id <= 0 )
                     {
                         Resp.StatusCode = StatusCodes.Status400BadRequest;
@@ -154,7 +154,7 @@ namespace VehicleManagement.Controllers
                         return StatusCode(StatusCodes.Status400BadRequest, Resp);
                     }
 
-                    if (menuRolePermission.MenuID == null)
+                    if (menuRolePermission.Menu_Id == null)
                     {
                         Resp.StatusCode = StatusCodes.Status400BadRequest;
                         Resp.Message = "MenuID Is Missing  In One Of The Entries Please Provide RoleId ";
@@ -171,13 +171,13 @@ namespace VehicleManagement.Controllers
 
                 foreach (var menuRolePermission in menuRolePermissions)
                 {
-                    string deleteQuery = $"DELETE FROM Menu_Role_Permission_Mst1 WHERE Role_Id = {menuRolePermission.Role_Id} AND MenuID = {menuRolePermission.MenuID} AND Permission_Id = {menuRolePermission.Permission_Id}";
+                    string deleteQuery = $"DELETE FROM Menu_Role_Permission_Mst WHERE Role_Id = {menuRolePermission.Role_Id} AND Menu_Id = {menuRolePermission.Menu_Id} AND Permission_Id = {menuRolePermission.Permission_Id}";
                     LkDataConnection.Connection.ExecuteNonQuery(deleteQuery);
                 }
 
                 foreach (var menuRolePermission in menuRolePermissions)
                 {
-                    _query = _dc.InsertOrUpdateEntity(menuRolePermission, "Menu_Role_Permission_Mst1", -1);
+                    _query = _dc.InsertOrUpdateEntity(menuRolePermission, "Menu_Role_Permission_Mst", -1);
                 }
 
                 Resp.StatusCode = StatusCodes.Status200OK;

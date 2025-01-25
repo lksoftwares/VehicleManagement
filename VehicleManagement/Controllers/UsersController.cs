@@ -61,9 +61,11 @@ namespace VehicleManagement.Controllers
 
                 var connection = new LkDataConnection.Connection();
 
-                var result = connection.bindmethod(query);
+              //  var result = connection.bindmethod(query);
 
-                DataTable Table = result._DataTable;
+                // DataTable Table = result._DataTable;
+                DataTable Table = _connectionClass.ExecuteQueryWithResult(query);
+
                 DataRow userData = Table.Rows.Count > 0 ? Table.Rows[0] : null;
 
 
