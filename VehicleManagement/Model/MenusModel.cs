@@ -17,6 +17,10 @@ namespace VehicleManagement.Model
 
         public IFormFile? IconPath { get; set; }
         public string? IconUrl { get; set; }
+        [JsonPropertyName("pageName")]
+
+        public string? Page_Name { get; set; }
+
 
 
 

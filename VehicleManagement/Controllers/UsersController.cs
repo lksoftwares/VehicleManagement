@@ -301,7 +301,7 @@ namespace VehicleManagement.Controllers
 
                     if (!string.IsNullOrEmpty(imageName))
                     {
-                        var imageUrl = $"http://192.168.1.64:7148/public/images/{imageName}";
+                        var imageUrl = $"http://192.168.1.51:7148/public/images/{imageName}";
 
                         Resp.StatusCode = StatusCodes.Status200OK;
                         Resp.Message = "Profile Fetched   successfully";

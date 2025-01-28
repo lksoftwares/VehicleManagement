@@ -50,7 +50,7 @@ namespace VehicleManagement.Controllers
                 DataTable Table = _connection.ExecuteQueryWithResult(query);
 
                 var MenuList = new List<MenusModel>();
-                var MenuImgPath = "http://192.168.1.64:7148/public/Icons/";
+                var MenuImgPath = "http://192.168.1.51:7148/public/Icons/";
 
                 foreach (DataRow row in Table.Rows)
                 {
@@ -60,7 +60,8 @@ namespace VehicleManagement.Controllers
                         Menu_Name = row["Menu_Name"].ToString(),
                         Parent_Id = row["Parent_Id"] as int?,
 
-                        IconUrl = string.IsNullOrEmpty(row["IconPath"]?.ToString()) ? null : MenuImgPath + row["IconPath"].ToString()
+                        IconUrl = string.IsNullOrEmpty(row["IconPath"]?.ToString()) ? null : MenuImgPath + row["IconPath"].ToString(),
+                        Page_Name = row["Page_Name"].ToString()
 
                         // IconPath =  row["IconPath"] ,
 
@@ -72,7 +73,7 @@ namespace VehicleManagement.Controllers
 
 
 
-                    });
+                    }); ;
                 }
                 Resp.StatusCode = StatusCodes.Status200OK;
                 Resp.Message = $"Data fetched successfully ";
@@ -116,7 +117,12 @@ namespace VehicleManagement.Controllers
 
                     return StatusCode(StatusCodes.Status208AlreadyReported, Resp);
                 }
+                if (menus.Menu_Name != null || !string.IsNullOrEmpty(menus.Menu_Name))
+                {
+                    var menuName = new System.Globalization.CultureInfo("en-US", false).TextInfo.ToTitleCase(menus.Menu_Name.ToLower());
+                    menus.Menu_Name = menuName;
 
+                }
                 if (string.IsNullOrEmpty(menus.Menu_Name))
                 {
                     Resp.StatusCode = StatusCodes.Status404NotFound;
@@ -258,6 +264,12 @@ namespace VehicleManagement.Controllers
 
                 //    return StatusCode(StatusCodes.Status404NotFound, Resp);
                 //}
+                if (menus.Menu_Name != null || !string.IsNullOrEmpty(menus.Menu_Name))
+                {
+                    var menuName = new System.Globalization.CultureInfo("en-US", false).TextInfo.ToTitleCase(menus.Menu_Name.ToLower());
+                    menus.Menu_Name = menuName;
+
+                }
                 string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Public", "Icons");
                 _query = _dc.InsertOrUpdateEntity(menus, "Menus_Mst", Menu_Id, "Menu_Id", folderPath);
                 Resp.StatusCode = StatusCodes.Status200OK;

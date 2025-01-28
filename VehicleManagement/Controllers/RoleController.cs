@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Data;
 using System.Runtime.Intrinsics.Arm;
 using VehicleManagement.Classes;
@@ -110,6 +111,12 @@ namespace VehicleManagement.Controllers
 
                     return StatusCode(StatusCodes.Status404NotFound, Resp);
                 }
+                if (role.Role_Name != null || !string.IsNullOrEmpty(role.Role_Name))
+                {
+                    var roleName = new System.Globalization.CultureInfo("en-US", false).TextInfo.ToTitleCase(role.Role_Name.ToLower());
+                    role.Role_Name = roleName;
+
+                }
                 _query = _dc.InsertOrUpdateEntity(role, "Role_mst", -1);
 
                 Resp.StatusCode = StatusCodes.Status200OK;
@@ -178,6 +185,12 @@ namespace VehicleManagement.Controllers
                     Resp.Message = $"RoleName Can't be Blank Or Null";
 
                     return StatusCode(StatusCodes.Status208AlreadyReported, Resp);
+
+                }
+                if (role.Role_Name != null || !string.IsNullOrEmpty(role.Role_Name))
+                {
+                    var roleName = new System.Globalization.CultureInfo("en-US", false).TextInfo.ToTitleCase(role.Role_Name.ToLower());
+                    role.Role_Name = roleName;
 
                 }
                 _query = _dc.InsertOrUpdateEntity(role, "Role_mst", Role_ID, "Role_Id");

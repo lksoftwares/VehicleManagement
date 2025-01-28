@@ -112,8 +112,9 @@ namespace VehicleManagement.Controllers
 
                     return StatusCode(StatusCodes.Status404NotFound, Resp);
                     }
-           
-                    vehicle.Created_At = DateTime.Now;
+             
+
+                vehicle.Created_At = DateTime.Now;
                
                 _query = _dc.InsertOrUpdateEntity(vehicle, "Vehicle_Mst", -1);
                 Resp.StatusCode = StatusCodes.Status200OK;

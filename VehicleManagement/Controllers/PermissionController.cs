@@ -75,7 +75,7 @@ namespace VehicleManagement.Controllers
                     Levels = maxLevel,
                     RoleId = Role_Id ?? 0,
                     //  startLevel = 1,
-                    ImagePath = "http://192.168.1.64:7148/public/Icons/"
+                    ImagePath = "http://192.168.1.51:7148/public/Icons/"
                 };
                 CreateQueryWithPermissions createQueryWithPermissions = new CreateQueryWithPermissions();
                 string query = createQueryWithPermissions.LatestBlankCreateQuery(perameteFeilds);
@@ -96,6 +96,8 @@ namespace VehicleManagement.Controllers
        Icon = string.IsNullOrEmpty(lev1.First()["Icon1"]?.ToString())
                                 ? null
                                 : perameteFeilds.ImagePath + lev1.First()["Icon1"]?.ToString(),
+    //   PageName = lev1.First()["PageName1"]?.ToString(),
+
        MenuName = lev1.Key,
        Roles = lev1
            .Where(row => row["Role_Id"] != DBNull.Value || row["Permission_Id"] != DBNull.Value)
@@ -170,7 +172,8 @@ namespace VehicleManagement.Controllers
                         MenuName = lev1.Key,
                         Icon = string.IsNullOrEmpty(lev1.First()["Icon1"]?.ToString())
                             ? null
-                            : "http://192.168.1.64:7148/public/Icons/" + lev1.First()["Icon1"]?.ToString(),
+                            : "http://192.168.1.51:7148/public/Icons/" + lev1.First()["Icon1"]?.ToString(),
+                        PageName = lev1.First()["PageName1"]?.ToString(),
                         Roles = lev1.Select(row => new
                         {
                             RoleId = row["Role_Id"],
@@ -184,7 +187,7 @@ namespace VehicleManagement.Controllers
                             RoleId = datatblePerameters.Role_Id,
                             group = lev1,
                             startLevel = 2,
-                            ImagePath = "http://192.168.1.64:7148/public/Icons/"
+                            ImagePath = "http://192.168.1.51:7148/public/Icons/"
                         })
                     })
                     .ToList();
@@ -199,6 +202,7 @@ namespace VehicleManagement.Controllers
                     Resp
             );
             }
+
             catch (Exception ex)
             {
                 Resp.StatusCode = StatusCodes.Status500InternalServerError;
@@ -570,7 +574,7 @@ namespace VehicleManagement.Controllers
                     Levels = maxLevel,
                     RoleId = Role_Id ?? 0,
                   //  startLevel = 1,
-                    ImagePath = "http://192.168.1.64:7148/public/Icons/"
+                    ImagePath = "http://192.168.1.51:7148/public/Icons/"
                 };
                 CreateQueryWithPermissions createQueryWithPermissions = new CreateQueryWithPermissions();
                 string query = createQueryWithPermissions.CreateQuery(perameteFeilds);
@@ -720,6 +724,10 @@ namespace VehicleManagement.Controllers
 
                     return StatusCode(StatusCodes.Status404NotFound, Resp);
                 }
+                if (!string.IsNullOrEmpty(permission.Permission_Type))
+                {
+                    permission.Permission_Type = permission.Permission_Type.ToUpper();
+                }
                 _query = _dc.InsertOrUpdateEntity(permission, "Permission_Mst", -1);
 
                 Resp.StatusCode = StatusCodes.Status200OK;
@@ -790,6 +798,10 @@ namespace VehicleManagement.Controllers
                     return StatusCode(StatusCodes.Status208AlreadyReported, Resp);
 
                 }
+                if (!string.IsNullOrEmpty(permission.Permission_Type))
+                {
+                    permission.Permission_Type = permission.Permission_Type.ToUpper();
+                }
                 _query = _dc.InsertOrUpdateEntity(permission, "Permission_Mst", id, "Permission_Id");
                 Resp.StatusCode = StatusCodes.Status200OK;
                 Resp.Message = "Permission Updated Successfully";
@@ -835,7 +847,7 @@ namespace VehicleManagement.Controllers
                         Levels = Convert.ToInt32(maxLevel),
                         RoleId = Role_Id ?? 0,
                        
-                        ImagePath = "http://192.168.1.64:7148/public/Icons/"
+                        ImagePath = "http://192.168.1.51:7148/public/Icons/"
                     };
 
                     CreateQueryWithPermissions createMenuQuery = new CreateQueryWithPermissions();
@@ -1247,7 +1259,7 @@ t1.IconPath as icon1,
                 }
 
                 DataTable dataTable = result._DataTable;
-                var ImagePath = "http://192.168.1.64:7148/public/Icons/";
+                var ImagePath = "http://192.168.1.51:7148/public/Icons/";
 
                 var menus = dataTable.AsEnumerable()
                     .Where(row => row["Permission_Id"] != DBNull.Value)

@@ -12,6 +12,7 @@ namespace VehicleManagement.Classes
             t1.Order_No AS levOrd1,
             t1.Menu_Name AS Level1,
 		    t1.Menu_Id AS levMenuId1,
+            t1.Page_Name AS PageName1,
 
             mrp.Permission_Id,
             p.Permission_Type,
@@ -23,7 +24,7 @@ namespace VehicleManagement.Classes
 
             for (int i = 2; i <= createMenuQueryFeilds.Levels; i++)
             {
-                baseQuery += $", t{i}.IconPath AS icon{i}, t{i}.Order_No AS levOrd{i}, t{i}.Menu_Name AS Level{i}, t{i}.Menu_Id AS levMenuId{i} ";
+                baseQuery += $", t{i}.IconPath AS icon{i}, t{i}.Order_No AS levOrd{i}, t{i}.Menu_Name AS Level{i}, t{i}.Menu_Id AS levMenuId{i} ,  t{i}.Page_Name AS PageName{i} ";
                 joinQuery += $" LEFT JOIN Menus_Mst AS t{i} ON t{i}.Parent_Id = t{i - 1}.Menu_Id ";
             }
 
@@ -60,6 +61,7 @@ namespace VehicleManagement.Classes
             t1.Order_No AS levOrd1,
             t1.MenuName AS Level1,
 		    t1.MenuID AS levMenuId1,
+       
 
             mrp.Permission_Id,
             p.Permission_Type,
@@ -103,6 +105,7 @@ namespace VehicleManagement.Classes
             var baseQuery = @"
         SELECT
             t1.IconPath AS icon1,
+
             r.Role_Id,
             r.Role_Name,
             mrp.Permission_Id,
@@ -116,7 +119,7 @@ namespace VehicleManagement.Classes
 t{i}.IconPath AS icon{i},
             t{i}.MenuID AS levMenuId{i},
             t{i}.Order_No AS levOrd{i},
-            t{i}.MenuName AS Level{i}";
+            t{i}.MenuName AS Level{i}  ";
 
                 if (i > 1)
                 {
@@ -147,6 +150,8 @@ t{i}.IconPath AS icon{i},
             var baseQuery = @"
         SELECT
             t1.IconPath AS icon1,
+            t1.Page_Name AS PageName1,
+
             r.Role_Id,
             r.Role_Name,
             mrp.Permission_Id,
@@ -160,7 +165,8 @@ t{i}.IconPath AS icon{i},
 t{i}.IconPath AS icon{i},
             t{i}.Menu_Id AS levMenuId{i},
             t{i}.Order_No AS levOrd{i},
-            t{i}.Menu_Name AS Level{i}";
+            t{i}.Menu_Name AS Level{i},
+  t{i}.Page_Name AS PageName{i}";
 
                 if (i > 1)
                 {
@@ -198,6 +204,8 @@ t{i}.IconPath AS icon{i},
                     Icon = string.IsNullOrEmpty(levGroup.First()[$"icon{createMenuQueryFeilds.startLevel}"]?.ToString())
                         ? null
                         : createMenuQueryFeilds.ImagePath + levGroup.First()[$"icon{createMenuQueryFeilds.startLevel}"]?.ToString(),
+                   PageName = levGroup.FirstOrDefault()?[$"PageName{createMenuQueryFeilds.startLevel}"],
+
                     MenuName = levGroup.Key,
                     Roles = levGroup
                         .Where(row => row["Role_Id"] != DBNull.Value || row["Permission_Id"] != DBNull.Value)
