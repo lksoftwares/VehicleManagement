@@ -18,17 +18,20 @@ namespace VehicleManagement.Controllers
     [ApiController]
     public class PermissionController : ControllerBase
     {
+        private IConfiguration _config;
         private apiResponse Resp = new apiResponse();
         private readonly ConnectionClass _connection;
         LkDataConnection.DataAccess _dc = new LkDataConnection.DataAccess();
         LkDataConnection.SqlQueryResult _query = new LkDataConnection.SqlQueryResult();
-        public PermissionController(ConnectionClass connection)
+        public PermissionController(ConnectionClass connection, IConfiguration configuration)
         {
             _connection = connection;
             LkDataConnection.Connection.Connect();
             LkDataConnection.Connection.ConnectionStr = _connection.GetSqlConnection().ConnectionString;
+            _config = configuration;
 
         }
+
 
         [AllowAnonymous]
         [HttpGet]
@@ -46,7 +49,7 @@ namespace VehicleManagement.Controllers
         FROM 
             Menus_Mst
         WHERE 
-            Parent_Id IS NULL
+            Parent_Id = 0
 
         UNION ALL
 
@@ -64,6 +67,7 @@ namespace VehicleManagement.Controllers
     SELECT MAX(Level) AS Mx
     FROM Menu;";
                 var connection = new LkDataConnection.Connection();
+                var ImgPath = _config["EnvVariable:ImgPathIcon"];
 
                 var LevelCount = connection.bindmethod(countQuery);
 
@@ -75,7 +79,7 @@ namespace VehicleManagement.Controllers
                     Levels = maxLevel,
                     RoleId = Role_Id ?? 0,
                     //  startLevel = 1,
-                    ImagePath = "http://192.168.1.51:7148/public/Icons/"
+                    ImagePath = ImgPath
                 };
                 CreateQueryWithPermissions createQueryWithPermissions = new CreateQueryWithPermissions();
                 string query = createQueryWithPermissions.LatestBlankCreateQuery(perameteFeilds);
@@ -162,6 +166,7 @@ namespace VehicleManagement.Controllers
                         Message = "No menus found for the given role."
                     });
                 }
+                var ImgPath = _config["EnvVariable:ImgPathIcon"];
 
                 string json = dataTableToJson.DataTableToJsonMethod(dataTable);
                 var menus = dataTable.AsEnumerable()
@@ -172,7 +177,7 @@ namespace VehicleManagement.Controllers
                         MenuName = lev1.Key,
                         Icon = string.IsNullOrEmpty(lev1.First()["Icon1"]?.ToString())
                             ? null
-                            : "http://192.168.1.51:7148/public/Icons/" + lev1.First()["Icon1"]?.ToString(),
+                            : ImgPath + lev1.First()["Icon1"]?.ToString(),
                         PageName = lev1.First()["PageName1"]?.ToString(),
                         Roles = lev1.Select(row => new
                         {
@@ -187,7 +192,7 @@ namespace VehicleManagement.Controllers
                             RoleId = datatblePerameters.Role_Id,
                             group = lev1,
                             startLevel = 2,
-                            ImagePath = "http://192.168.1.51:7148/public/Icons/"
+                            ImagePath = ImgPath
                         })
                     })
                     .ToList();
@@ -567,14 +572,16 @@ namespace VehicleManagement.Controllers
                 var LevelCount = connection.bindmethod(Count);
 
                 DataTable Leveltbl = LevelCount._DataTable;
+                var ImgPath = _config["EnvVariable:ImgPathIcon"];
 
                 int maxLevel = Convert.ToInt32(Leveltbl.Rows[0]["Mx"]);
                 PerameteFeilds perameteFeilds = new PerameteFeilds
                 {
                     Levels = maxLevel,
                     RoleId = Role_Id ?? 0,
+
                   //  startLevel = 1,
-                    ImagePath = "http://192.168.1.51:7148/public/Icons/"
+                    ImagePath = ImgPath
                 };
                 CreateQueryWithPermissions createQueryWithPermissions = new CreateQueryWithPermissions();
                 string query = createQueryWithPermissions.CreateQuery(perameteFeilds);
@@ -759,6 +766,7 @@ namespace VehicleManagement.Controllers
                 var roleExists = $"SELECT COUNT(*) FROM Permission_Mst WHERE Permission_Id = {id} ";
                 int result = Convert.ToInt32(_connection.ExecuteScalar(roleExists));
 
+                                var ImgPath = _config["EnvVariable:ImgPathIcon"];
 
                 if (result == 0)
                 {
@@ -841,13 +849,14 @@ namespace VehicleManagement.Controllers
                     DataTable Leveltbl = LevelCount._DataTable;
 
                   int  maxLevel = Convert.ToInt32(Leveltbl.Rows[0]["Mx"]);
+                    var ImgPath = _config["EnvVariable:ImgPathIcon"];
 
                     var queryFields = new PerameteFeilds
                     {
                         Levels = Convert.ToInt32(maxLevel),
                         RoleId = Role_Id ?? 0,
                        
-                        ImagePath = "http://192.168.1.51:7148/public/Icons/"
+                        ImagePath = ImgPath
                     };
 
                     CreateQueryWithPermissions createMenuQuery = new CreateQueryWithPermissions();
@@ -1257,9 +1266,10 @@ t1.IconPath as icon1,
                     Resp.Message = "No Menus Found";
                     return Ok(Resp);
                 }
+                var ImagePath = _config["EnvVariable:ImgPathIcon"];
 
                 DataTable dataTable = result._DataTable;
-                var ImagePath = "http://192.168.1.51:7148/public/Icons/";
+           //     var ImagePath = "http://192.168.1.59:7148/public/Icons/";
 
                 var menus = dataTable.AsEnumerable()
                     .Where(row => row["Permission_Id"] != DBNull.Value)

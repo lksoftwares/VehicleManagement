@@ -12,7 +12,7 @@ namespace VehicleManagement.Model
         public string? Menu_Name { get; set; }
         [JsonPropertyName("parentId")]
 
-        public int? Parent_Id { get; set; }
+        public int? Parent_Id { get; set; } = 0;
         [JsonPropertyName("IconPath")]
 
         public IFormFile? IconPath { get; set; }

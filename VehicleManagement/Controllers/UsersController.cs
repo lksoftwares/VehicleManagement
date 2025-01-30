@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.IdentityModel.Tokens;
 using System.Data;
@@ -301,8 +302,10 @@ namespace VehicleManagement.Controllers
 
                     if (!string.IsNullOrEmpty(imageName))
                     {
-                        var imageUrl = $"http://192.168.1.51:7148/public/images/{imageName}";
 
+                       //  var imageUrl = $"http://192.168.1.59:7148/public/images/{imageName}";
+                           var imageUrlconfig = _config["EnvVariable:UserImgPath"];
+                        var imageUrl= $"{ imageUrlconfig }{ imageName }";
                         Resp.StatusCode = StatusCodes.Status200OK;
                         Resp.Message = "Profile Fetched   successfully";
                         Resp.IsSuccess = true;

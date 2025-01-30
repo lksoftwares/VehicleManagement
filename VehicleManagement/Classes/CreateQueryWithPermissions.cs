@@ -43,7 +43,7 @@ namespace VehicleManagement.Classes
 
             if (createMenuQueryFeilds.RoleId != null && createMenuQueryFeilds.RoleId != 0)
             {
-                query += $" WHERE r.Role_Id = {createMenuQueryFeilds.RoleId}   AND t1.Parent_Id IS NULL";
+                query += $" WHERE r.Role_Id = {createMenuQueryFeilds.RoleId}   AND t1.Parent_Id = 0";
             }
 
             query += " ORDER BY " + string.Join(", ", Enumerable.Range(1, createMenuQueryFeilds.Levels).Select(i => $"t{i}.Order_No"));
@@ -184,7 +184,7 @@ t{i}.IconPath AS icon{i},
             AND (mrp.Role_Id = {perameteFeilds.RoleId} OR mrp.Role_Id IS NULL)
         LEFT JOIN Permission_Mst AS p ON mrp.Permission_Id = p.Permission_Id
         LEFT JOIN Role_Mst AS r ON mrp.Role_Id = r.Role_Id
-        WHERE t1.Parent_Id IS NULL
+        WHERE t1.Parent_Id = 0
         ORDER BY {string.Join(", ", Enumerable.Range(1, perameteFeilds.Levels).Select(i => $"t{i}.Order_No"))};";
 
             return query;

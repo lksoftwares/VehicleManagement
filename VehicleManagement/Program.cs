@@ -44,7 +44,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ConnectionClass>();
-
+//DotNetEnv.Env.Load();
+//builder.Configuration
+//    .AddEnvironmentVariables()
+//    .Build();
 var app = builder.Build();
 
 app.UseCors("ReactConnection");

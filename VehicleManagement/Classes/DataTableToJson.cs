@@ -27,7 +27,7 @@ namespace VehicleManagement.Classes
             {
                 Levels = maxLevel,
                 RoleId = datatblePerameters.Role_Id ,
-                ImagePath = "http://192.168.1.64:7148/public/Icons/"
+                ImagePath = "http://192.168.1.59:7148/public/Icons/"
             };
             CreateQueryWithPermissions createMenuQuery = new CreateQueryWithPermissions();
             string query = createMenuQuery.CreateMenus_Mst(queryFields);
@@ -58,7 +58,7 @@ namespace VehicleManagement.Classes
         FROM 
             Menus_Mst
         WHERE 
-            Parent_Id IS NULL
+            Parent_Id = 0 
 
         UNION ALL
 

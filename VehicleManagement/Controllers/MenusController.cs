@@ -50,7 +50,7 @@ namespace VehicleManagement.Controllers
                 DataTable Table = _connection.ExecuteQueryWithResult(query);
 
                 var MenuList = new List<MenusModel>();
-                var MenuImgPath = "http://192.168.1.51:7148/public/Icons/";
+                var MenuImgPath = "http://192.168.1.59:7148/public/Icons/";
 
                 foreach (DataRow row in Table.Rows)
                 {
@@ -270,6 +270,19 @@ namespace VehicleManagement.Controllers
                     menus.Menu_Name = menuName;
 
                 }
+                menus.Parent_Id = menus.Parent_Id ?? 0;
+                //if (menus.Parent_Id == null)
+                //{
+                // menus.Parent_Id = (int?)(menus.Parent_Id ?? (object)DBNull.Value);
+                //}
+
+                //menus.Parent_Id = menus.Parent_Id;
+                if (menus.Page_Name == null)
+                {
+                    menus.Page_Name = "";
+                    //menus.Parent_Id = (int?)(menus.Parent_Id ?? (object)DBNull.Value);
+                }
+               
                 string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Public", "Icons");
                 _query = _dc.InsertOrUpdateEntity(menus, "Menus_Mst", Menu_Id, "Menu_Id", folderPath);
                 Resp.StatusCode = StatusCodes.Status200OK;
