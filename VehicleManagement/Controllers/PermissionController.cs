@@ -40,40 +40,53 @@ namespace VehicleManagement.Controllers
         {
             try
             {
-                var countQuery = @"WITH Menu AS
-    (
-        SELECT 
-            Menu_Id,
-            Parent_Id,
-            1 AS Level
-        FROM 
-            Menus_Mst
-        WHERE 
-            Parent_Id = 0
+                //            var countQuery = @"WITH Menu AS
+                //(
+                //    SELECT 
+                //        Menu_Id,
+                //        Parent_Id,
+                //        1 AS Level
+                //    FROM 
+                //        Menus_Mst
+                //    WHERE 
+                //        Parent_Id = 0
 
-        UNION ALL
+                //    UNION ALL
 
-        SELECT 
-            m.Menu_Id,
-            m.Parent_Id,
-            mh.Level + 1 AS Level
-        FROM 
-            Menus_Mst m
-        INNER JOIN 
-            Menu mh
-        ON 
-            m.Parent_Id = mh.Menu_Id
-    )
-    SELECT MAX(Level) AS Mx
-    FROM Menu;";
-                var connection = new LkDataConnection.Connection();
+                //    SELECT 
+                //        m.Menu_Id,
+                //        m.Parent_Id,
+                //        mh.Level + 1 AS Level
+                //    FROM 
+                //        Menus_Mst m
+                //    INNER JOIN 
+                //        Menu mh
+                //    ON 
+                //        m.Parent_Id = mh.Menu_Id
+                //)
+                //SELECT MAX(Level) AS Mx
+                //FROM Menu;";
+                       var connection = new LkDataConnection.Connection();
+
+                //            var LevelCount = connection.bindmethod(countQuery);
+
+                //            DataTable Leveltbl = LevelCount._DataTable;
+
+                //            int maxLevel = Convert.ToInt32(Leveltbl.Rows[0]["Mx"]);
+
+
+                DataTableToJson dataTableToJson = new DataTableToJson();
+                var _maxLevelPerametes = new MaxLevelParameters
+                {
+                    TableName = "Menus_Mst",
+                    MenuIdColumn = "Menu_Id",
+                    ParentIdColumn = "Parent_Id"
+                };
+
+
+                int maxLevel = dataTableToJson.GetMaxLevel(_maxLevelPerametes);
                 var ImgPath = _config["EnvVariable:ImgPathIcon"];
 
-                var LevelCount = connection.bindmethod(countQuery);
-
-                DataTable Leveltbl = LevelCount._DataTable;
-
-                int maxLevel = Convert.ToInt32(Leveltbl.Rows[0]["Mx"]);
                 PerameteFeilds perameteFeilds = new PerameteFeilds
                 {
                     Levels = maxLevel,
@@ -156,7 +169,14 @@ namespace VehicleManagement.Controllers
 
                 DataTableToJson dataTableToJson = new DataTableToJson();
                 DataTable dataTable = (DataTable)dataTableToJson.QueryToDataTable(datatblePerameters);
-                int maxlevels = dataTableToJson.GetMaxLevel();
+                var _maxLevelPerametes = new MaxLevelParameters
+                {
+                    TableName = "Menus_Mst",
+                    MenuIdColumn = "Menu_Id",
+                    ParentIdColumn = "Parent_Id"
+                };
+
+                int maxlevels = dataTableToJson.GetMaxLevel(_maxLevelPerametes);
 
                 if (dataTable == null || dataTable.Rows.Count == 0)
                 {
@@ -566,15 +586,25 @@ namespace VehicleManagement.Controllers
         {
             try
             {
-                var Count = "WITH Menu AS\r\n(\r\n    SELECT \r\n        MenuID,\r\n        ParentID,\r\n        1 AS Level\r\n    FROM \r\n        Menus    WHERE         ParentID IS NULL\r\n\r\n    UNION ALL\r\n\r\n    SELECT \r\n        m.MenuID,\r\n        m.ParentID,\r\n        mh.Level + 1 AS Level   FROM \r\n        Menus m   INNER JOIN \r\n        Menu mh\r\n    ON \r\n        m.ParentID = mh.MenuID ) SELECT MAX(Level) AS Mx FROM Menu;";
+                //var Count = "WITH Menu AS\r\n(\r\n    SELECT \r\n        MenuID,\r\n        ParentID,\r\n        1 AS Level\r\n    FROM \r\n        Menus    WHERE         ParentID IS NULL\r\n\r\n    UNION ALL\r\n\r\n    SELECT \r\n        m.MenuID,\r\n        m.ParentID,\r\n        mh.Level + 1 AS Level   FROM \r\n        Menus m   INNER JOIN \r\n        Menu mh\r\n    ON \r\n        m.ParentID = mh.MenuID ) SELECT MAX(Level) AS Mx FROM Menu;";
                 var connection = new LkDataConnection.Connection();
 
-                var LevelCount = connection.bindmethod(Count);
+                // var LevelCount = connection.bindmethod(Count);
 
-                DataTable Leveltbl = LevelCount._DataTable;
+                //DataTable Leveltbl = LevelCount._DataTable
+                DataTableToJson dataTableToJson = new DataTableToJson();
+                  var _maxLevelPerametes = new MaxLevelParameters
+                {
+                    TableName = "Menus",
+                    MenuIdColumn = "MenuID",
+                    ParentIdColumn = "ParentID"
+                  };
+
+                int maxLevel = dataTableToJson.GetMaxLevel(_maxLevelPerametes);
+
                 var ImgPath = _config["EnvVariable:ImgPathIcon"];
 
-                int maxLevel = Convert.ToInt32(Leveltbl.Rows[0]["Mx"]);
+               // int maxLevel = Convert.ToInt32(Leveltbl.Rows[0]["Mx"]);
                 PerameteFeilds perameteFeilds = new PerameteFeilds
                 {
                     Levels = maxLevel,
