@@ -12,14 +12,18 @@ namespace VehicleManagement.Controllers
     [ApiController]
     public class MenusController : ControllerBase
     {
+        private IConfiguration _config;
+
         private apiResponse Resp = new apiResponse();
         private readonly ConnectionClass _connection;
         LkDataConnection.DataAccess _dc = new LkDataConnection.DataAccess();
         LkDataConnection.SqlQueryResult _query = new LkDataConnection.SqlQueryResult();
         private readonly IWebHostEnvironment _hostingEnvironment;
 
-        public MenusController(ConnectionClass connection, IWebHostEnvironment hostingEnvironment )
+
+        public MenusController(ConnectionClass connection, IWebHostEnvironment hostingEnvironment, IConfiguration configuration )
         {
+            _config = configuration;
             _connection = connection;
             LkDataConnection.Connection.Connect();
             LkDataConnection.Connection.ConnectionStr = _connection.GetSqlConnection().ConnectionString;
@@ -44,14 +48,15 @@ namespace VehicleManagement.Controllers
                 var connection = new LkDataConnection.Connection();
 
                 //var result = connection.bindmethod(query);
+               // var ImgPath = _config["EnvVariable:ImgPathIcon"];
 
 
                 //DataTable Table = result._DataTable;
                 DataTable Table = _connection.ExecuteQueryWithResult(query);
 
                 var MenuList = new List<MenusModel>();
-                var MenuImgPath = "http://192.168.1.59:7148/public/Icons/";
-
+                //    var MenuImgPath = "http://192.168.1.74:7148/public/Icons/";
+                var MenuImgPath = _config["EnvVariable:ImgPathIcon"];
                 foreach (DataRow row in Table.Rows)
                 {
                     MenuList.Add(new MenusModel

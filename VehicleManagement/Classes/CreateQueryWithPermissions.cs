@@ -265,6 +265,7 @@ namespace VehicleManagement.Classes
         { "RolePermissions", "Menu_Role_Permission_Mst" }
     };
 
+
         
             if (createMenuQueryFeilds.TableNames != null)
             {

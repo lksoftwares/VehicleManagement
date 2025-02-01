@@ -32,7 +32,7 @@ namespace VehicleManagement.Classes
             {
                 Levels = maxLevel,
                 RoleId = datatblePerameters.Role_Id ,
-                ImagePath = "http://192.168.1.54:7148/public/Icons/",
+                ImagePath = "http://192.168.1.72:7148/public/Icons/",
                 TableNames = new Dictionary<string, string>
     {
         { "Menus", "Menus_Mst" },
@@ -75,7 +75,7 @@ namespace VehicleManagement.Classes
             FROM 
                 {parameters.TableName}  
             WHERE 
-                {parameters.ParentIdColumn} is null
+                {parameters.ParentIdColumn} = 0
 
             UNION ALL
 
